@@ -10,13 +10,6 @@ INSTALL_SCRIPT=cp
 INSTALL_DATA=cp
 PERL=perl
 
-BASELIBS=-lm
-
-# This works with most systems, but not MacOS X:
-
-CC=gcc
-# CC=/usr/sepp/bin/gcc		# Solaris at KVL
-
 # To compile the runtime system camlrunm with support for
 # dynamically loadable libraries (DDLs), uncomment these:
 
@@ -26,6 +19,13 @@ ADDRUNLIBS=-ldl
 ADDRUNCFLAGS=
 ADDDYNLIBCFLAGS=
 
+# To compile the runtime system camlrunm under Cygwin with support for
+# dynamically loadable libraries (DDLs), uncomment these:
+
+ADDPRIMS=dynlib.c
+ADDOBJS=dynlib.o
+ADDRUNCFLAGS=
+ADDDYNLIBCFLAGS=
 
 # For Linux (x86 or Alpha), use:
 # ------------------------------
@@ -33,26 +33,6 @@ CPP=/lib/cpp -P -traditional -Dunix -Umsdos
 STRIP=strip
 LD=gcc -rdynamic
 DYNLD=ld -shared
-
-# For FreeBSD, use:
-# -----------------
-# CPP=/usr/bin/cpp -P -traditional -Dunix -Umsdos
-# STRIP=strip
-# LD=gcc -export-dynamic
-# DYNLD=ld -shared
-# ADDRUNLIBS=
-
-# For MacOS X, use:
-# -----------------
-# CPP=/usr/bin/cpp -P -traditional -Dunix -Umsdos
-# STRIP=strip -S
-# CC=cc -traditional-cpp
-# LD=cc
-# DYNLD=$(LD) -I/sw/include -bundle -flat_namespace -undefined suppress
-# ADDDYNLIBCFLAGS=-I/sw/include -fPIC
-# ADDRUNCFLAGS=-I/sw/include
-# ADDRUNLIBS=-L/sw/lib -ldl
-# BASELIBS=
 
 # For Cygwin 20.1, use:
 # ---------------------
@@ -62,11 +42,6 @@ DYNLD=ld -shared
 # LD=gcc -Wl,--export-dynamic
 # DYNLD=ld -shared
 # EXE=.exe
-# # For dynamically loadable libraries (DDLs) under Cygwin:
-# ADDPRIMS=dynlib.c
-# ADDOBJS=dynlib.o
-# ADDRUNCFLAGS=
-# ADDDYNLIBCFLAGS=
 
 # For NetBSD, use:
 # ------------------------
@@ -86,7 +61,7 @@ DYNLD=ld -shared
 # DYNLD=ld -G -B symbolic -z nodefs
 # ADDRUNCFLAGS=
 # ADDDYNLIBCFLAGS=
- 
+
 # If the above fails with dynlibs, try this:
 # LD=gcc -Wl,--export-dynamic
 
@@ -166,6 +141,8 @@ MOSMLDEP=../camlrunm ../mosmldep
 
 # For cross-compiling to Win 32 (from Linux) (development only)
 # CPP=/lib/cpp -P -traditional -Umsdos -Uunix -Dwin32
+
+CC=gcc
 
 .SUFFIXES :
 .SUFFIXES : .sml .sig .ui .uo .mlp .lex .c .o

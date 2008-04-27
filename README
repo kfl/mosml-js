@@ -6,7 +6,6 @@ The current version 2.00 of Moscow ML
 
     * implements the full Standard ML language, as revised 1997, 
       including Modules and some extensions
-    * yet is backwards compatible with versions prior to 2.00
     * implements large parts of the new SML Basis Library
     * implements separate compilation 
     * can produce compact stand-alone executables (a la Caml Light)
@@ -57,7 +56,6 @@ Documentation files:
     README              This file
     doc/manual.pdf      User manual (PDF format)
     doc/mosmlref.pdf    A compact guide to Moscow ML syntax and primitives
-    doc/mosmllib.pdf    Moscow ML library documentation with an index
     doc/mosmllib/*.html Moscow ML library documentation in HTML format
     copyrght/*          Copyright notices (for Caml Light, SML/NJ, ...)
 
@@ -70,7 +68,7 @@ Moscow ML was written by
 and Claudio V. Russo (Claudio.Russo@cl.cam.ac.uk), University of Cambridge.
     Thanks to Don Sannella at LFCS, Division of Informatics,
     University of Edinburgh for funding under EPSRC grant GR/K63795
-and Peter Sestoft (sestoft@itu.dk),
+and Peter Sestoft (sestoft@dina.kvl.dk),
     Department of Mathematics and Physics, Royal Veterinary and
     Agricultural University, Thorvaldsensvej 40, DK-1871 Frederiksberg C, 
     Denmark.  Much of the work was done at the Technical University of
@@ -88,8 +86,7 @@ Moscow ML owes much to:
       MacOS port and many improvements; and
     * feedback, contributions, and useful suggestions, in particular
       from Ken Friis Larsen, but also from Jonas Barklund, Mike Gordon,
-      Michael Norrish, Konrad Slind, Jakob Lichtenberg, Hans Molin, and 
-      numerous other people.
+      Michael Norrish, Konrad Slind, and numerous other people.
 
 COPYRIGHT NOTICE FOR MOSCOW ML
 
@@ -121,12 +118,19 @@ from ftp.inria.fr:lang/caml-light.
 AVAILABILITY
 
     * The Moscow ML home page is at  
-        http://www.itu.dk/people/sestoft/mosml.html
-    * Moscow ML library documentation
-        http://www.itu.dk/people/sestoft/mosmllib/
+        http://www.dina.kvl.dk/~sestoft/mosml.html
     * The Linux executables (and documentation) are in
-        http://www.itu.dk/people/sestoft/linux-mos20bin.tar.gz
+        ftp://ftp.dina.kvl.dk/pub/mosml/linux-mos20bin.tar.gz
     * The MS Windows executables are in 
-        http://www.itu.dk/people/sestoft/win32-mos20bin.zip
-    * The Unix source files (and documentation) are in
-        http://www.itu.dk/people/sestoft/mos201src.tar.gz
+        ftp://ftp.dina.kvl.dk/pub/mosml/win32-mos20bin.zip
+    * The MS DOS executables (and documentation) are in
+        ftp://ftp.dina.kvl.dk/pub/mosml/mos20bin.zip
+    * The Macintosh/MacOS (68k and PPC) executables are in
+        ftp://ftp.dina.kvl.dk/pub/mosml/mac-mos20bin.sea.hqx
+    * The Unix source files (no documentation) are in
+        ftp://ftp.dina.kvl.dk/pub/mosml/mos20src.tar.gz
+    * The MacOS modified source files (relative to Unix) are in
+        ftp://ftp.dina.kvl.dk/pub/mosml/mac-mos20src.sea.hqx
+
+The files are mirrored at 
+        ftp://ftp.csd.uu.se/pub/mirror/mosml

@@ -374,14 +374,14 @@ and unguardedTy (_, ty') =
 and unguardedModBind (MODBINDmodbind(modid,modexp)) =
       unguardedModExp modexp
   | unguardedModBind (ASmodbind(modid,sigexp,exp)) =
-      (unguardedSigExp sigexp U
+      (unguardedSigExp sigexp;
        unguardedExp exp)
 and unguardedSigBind (SIGBINDsigbind(sigid,sigexp)) =
       unguardedSigExp sigexp
 and unguardedFunBind (FUNBINDfunbind(funid,modexp)) =
      unguardedModExp modexp
   | unguardedFunBind (ASfunbind(funid,sigexp,exp)) =
-      (unguardedSigExp sigexp U
+      (unguardedSigExp sigexp;
        unguardedExp exp)
 and unguardedModExp (_,(modexp,_)) = 
     case modexp of
@@ -571,27 +571,12 @@ fun expansiveIdsInValBind (ValBind(ref pat, exp)) acc =
   if (isExpansiveExp exp) then (domPatAcc pat acc) else acc
 ;
 
-(* Bug fix 2004-05-24 from Claudio; bug from Andrzej Wasowski *)
-
-fun renameScheme scheme = Types.copyTypeScheme [] [] scheme
-
-fun closeValBindVE loc (pvbs: ValBind list) VE =
-  let val exIds = foldR expansiveIdsInValBind [] pvbs in
-    mapEnv (fn id => fn {qualid, info = (t,sc)} =>
-        {qualid=qualid,info = (renameScheme(generalization (member id
-exIds) t),sc)}) VE
-  end
-;
-
-
-(*
 fun closeValBindVE loc (pvbs: ValBind list) VE =
   let val exIds = foldR expansiveIdsInValBind [] pvbs in
     mapEnv (fn id => fn {qualid, info = (t,sc)} => 
         {qualid=qualid,info = (generalization (member id exIds) t,sc)}) VE
   end
 ;
-*)
 
 fun findAndMentionStrSig loc i = 
     let  val cu = findAndMentionSig loc i 
@@ -1049,7 +1034,6 @@ fun checkTypDesc (tyvars, tycon) =
     "Duplicate parameter in a prim_type binding"
 ; 
 
-
 (* checkApplicativeModExp dec is used to ensures that module values are
    not opened at top-level within (both generative and applicative) functor bodies 
    (doing so is unsound in the presence of applicative functors).
@@ -1101,31 +1085,6 @@ and checkApplicativeDec (loc,dec') =
            fbs
   | _ => ()
 ;
-
-fun checkApplicativeMod loc (STRmod recstr) =
-    checkApplicativeRecStr loc recstr
-|   checkApplicativeMod loc (FUNmod F) =
-    checkApplicativeFun loc F
-and checkApplicativeFun loc (forall,dom,(EXISTSexmod(exists,rng))) =
-     case exists of 
-       [] => checkApplicativeMod loc rng
-     | _ => errorMsg loc "Illegal applicative functor argument: \
-		   \the signature specifies a generative functor \
-		   \in a positive position"
-and checkApplicativeRecStr loc (RECrec(fwd,bdy)) = 
-    checkApplicativeRecStr loc bdy
-|   checkApplicativeRecStr loc (NONrec str) =
-    checkApplicativeStr loc str
-and checkApplicativeStr loc (STRstr (ME,FE,GE,TE,VE)) =
-    (traverseEnv (fn modid => fn {info=recstr,...} =>
-		    checkApplicativeRecStr loc recstr)
-     ME;
-     traverseEnv (fn funid => fn {info=F,...} =>
-		    checkApplicativeFun loc F) 
-     FE)
-|   checkApplicativeStr loc (SEQstr(S1,S2)) =
-    (checkApplicativeStr loc S1;
-     checkApplicativeStr loc S2)
 
 (* semantic checks *)
 
@@ -1563,7 +1522,7 @@ fun elabPat (ME:ModEnv) (FE:FunEnv) (GE:SigEnv) (UE : UEnv) (VE : VarEnv) (TE : 
   | VARpat ii =>
      (case ii of 
         {qualid = {id = [id],...}, info={idLoc,...}} =>
-          let val q =  mkLocalName  id
+          let val q = (* mkName onTop *) mkLocalName  id
               val vi = { qualid=q, info=REGULARo }
           in bindOnceInEnv PE (idLoc,id) 
 	      {qualid=q, info= (trivial_scheme pat_t,VARname REGULARo)}
@@ -1927,19 +1886,28 @@ fun elabDatBindList (ME:ModEnv) (FE:FunEnv) (GE:SigEnv) (UE:UEnv) (VE:VarEnv) (T
             (elabDatBind ME FE GE UE VE TE) (NILenv,NILenv) dbs
 ;
 
-fun elabExBind  (ME:ModEnv) (FE:FunEnv) (GE:SigEnv) (UE : UEnv) (VE : VarEnv) (TE : TyEnv)  = fn
+fun elabExBind  (ME:ModEnv) (FE:FunEnv) (GE:SigEnv) (UE : UEnv) (VE : VarEnv) (TE : TyEnv) onTop = fn
     EXDECexbind(ii, SOME ty) =>
       let val _ = checkRebinding illegalCon ii
 	  val {qualid, info = {idLoc,idKind,...}} = ii
           val id = longIdentAsIdent (#id qualid) "elabExBind"
           val ei = mkExConInfo()
-          val q =  mkLocalName  id
+          val q = (* mkName onTop *) mkLocalName  id
           val _ = idKind := { qualid=q, info=EXCONik ei };
           val _ = setExConArity ei 1
+(* ps:    val _ = if onTop then
+                    setExConTag ei (SOME (q, newExcStamp()))
+                  else ()
+*)
           val arg_t = (elabTy ME FE GE UE VE TE ty)
       in
         if typeIsImperative arg_t then ()
         else errorMsg (xLR ty) "Non-imperative exception type";
+(* ps:        if isExConStatic ei andalso isRecTy ty then
+          (setExConArity ei (arityOfRecTy ty);
+           setExConIsGreedy ei true)
+        else ();
+*)
         ((idLoc,id), {qualid = q,info = (type_arrow arg_t type_exn, EXNname ei)})
       end
   | EXDECexbind(ii, NONE) =>
@@ -1947,9 +1915,13 @@ fun elabExBind  (ME:ModEnv) (FE:FunEnv) (GE:SigEnv) (UE : UEnv) (VE : VarEnv) (T
           val {qualid, info = {idLoc,idKind,...}} = ii
           val id = longIdentAsIdent (#id qualid) "elabDec:EXDECexbind"
           val ei = mkExConInfo()
-          val q =  mkLocalName id
+          val q = (* mkName onTop *) mkLocalName id
           val _ = idKind := { qualid=q, info=EXCONik ei };
           val _ = setExConArity ei 0
+(* ps:          val _ = if onTop then
+                    setExConTag ei (SOME (q, newExcStamp()))
+                  else ()
+*)
       in 
             ((idLoc,id), {qualid = q, info = (type_exn, EXNname ei)})
       end
@@ -1971,7 +1943,7 @@ fun elabExBind  (ME:ModEnv) (FE:FunEnv) (GE:SigEnv) (UE : UEnv) (VE : VarEnv) (T
           | REFname   => errorMsg loc'
               "`ref' is used as an exception name"
           | EXNname ei' => (* cvr: TODO review *)
-              let val q =  mkLocalName  id in
+              let val q = (* mkName onTop *) mkLocalName  id in
                 #idKind info' := { qualid= csqualid, info=EXCONik ei' };
                 #idFields info' := fields; 
                 idKind := { qualid= q, info=EXCONik ei' };
@@ -1981,12 +1953,12 @@ fun elabExBind  (ME:ModEnv) (FE:FunEnv) (GE:SigEnv) (UE : UEnv) (VE : VarEnv) (T
       end
 ; 
 
-fun elabExBindList (ME:ModEnv) (FE:FunEnv) (GE:SigEnv) (UE : UEnv) (VE : VarEnv) (TE : TyEnv)  ebs =
+fun elabExBindList (ME:ModEnv) (FE:FunEnv) (GE:SigEnv) (UE : UEnv) (VE : VarEnv) (TE : TyEnv) onTop ebs =
   closeEE (foldL_map (fn (locid, tau) => fn env =>
 		      bindOnceInEnv env locid tau
 		       "The same exception constructor is declared\
                        \ twice in an exception declaration" )
-                     (elabExBind ME FE GE UE VE TE ) NILenv ebs)
+                     (elabExBind ME FE GE UE VE TE onTop) NILenv ebs)
 ;
 
 (* OVL1TXXo is not a true overloaded type, *)
@@ -2094,7 +2066,7 @@ fun elabExp (ME:ModEnv) (FE:FunEnv) (GE:SigEnv) (UE : UEnv) (VE : VarEnv) (TE : 
       end
   | LETexp(dec, body) => 
       let val EXISTS(T,(ME',FE',GE', VE', TE')) =
-	        elabDec ME FE GE UE VE TE   dec 
+	        elabDec ME FE GE UE VE TE false  dec 
 	  val () = incrBindingLevel();
           val () = refreshTyNameSet PARAMETERts T;
           val tau = 
@@ -2266,7 +2238,7 @@ and elabMRule (ME:ModEnv) (FE:FunEnv) (GE:SigEnv) (UE:UEnv) (VE:VarEnv)
   case (pats, arg_ts) of
       ([], []) => elabExp ME FE GE UE VE TE exp res_t
     | (pat :: pats', arg_t :: arg_ts') =>
-        let val VE' = elabPat ME FE GE UE VE TE  pat arg_t NILenv
+        let val VE' = elabPat ME FE GE UE VE TE (* false *) pat arg_t NILenv
         in elabMRule ME FE GE UE (plusEnv VE VE') TE exp res_t pats' arg_ts' end
     | (_, _) => fatalError "elabMRule"
 
@@ -2278,7 +2250,7 @@ and elabDatatypeReplication (ME:ModEnv) (FE:FunEnv) (GE:SigEnv)
     in (VEofCE CE,mk1Env tycon tyStr)
     end
 and elabDec (ME:ModEnv) (FE:FunEnv) (GE:SigEnv) (UE:UEnv) (VE:VarEnv)
-  (TE : TyEnv)    (loc, dec') =
+  (TE : TyEnv) (onTop : bool)  (loc, dec') =
   case dec' of
     VALdec (tvs, (pvbs, rvbs)) =>
       let val _ = checkDuplIds tvs "Duplicate explicit type variable"
@@ -2310,7 +2282,7 @@ and elabDec (ME:ModEnv) (FE:FunEnv) (GE:SigEnv) (UE:UEnv) (VE:VarEnv)
  	  EXISTS([],(NILenv, NILenv, NILenv, VE',NILenv))
        end
   | FUNdec (ref (UNRESfundec _)) => fatalError "elabDec"
-  | FUNdec (ref (RESfundec dec)) => elabDec ME FE GE UE VE TE  dec
+  | FUNdec (ref (RESfundec dec)) => elabDec ME FE GE UE VE TE onTop dec
   | TYPEdec tbs =>
       let val tbsTE = elabTypBindList ME FE GE UE VE TE tbs 
       in
@@ -2329,7 +2301,7 @@ and elabDec (ME:ModEnv) (FE:FunEnv) (GE:SigEnv) (UE:UEnv) (VE:VarEnv)
           val tbsTE = elabTypBindList_opt ME FE GE UE VE (plusEnv TE dbsTE) tbs_opt
           (* Here dbsTE will get destructively updated too. *)
           val _ = checkNoRebindingsTyEnv loc (plusEnv dbsTE tbsTE)
-	             "the same type constructor is defined twice in this datatype declaration"
+	             "the same type constructur is defined twice in this datatype declaration"
           val (VE',dbsTE') = elabDatBindList ME FE GE UE VE (plusEnv (plusEnv TE dbsTE) tbsTE) dbs
           val _ = checkNoRebindingsVarEnv loc VE'
 	             "the same constructor is defined twice in this datatype declaration"
@@ -2351,39 +2323,38 @@ and elabDec (ME:ModEnv) (FE:FunEnv) (GE:SigEnv) (UE:UEnv) (VE:VarEnv)
           val tbsTE = elabTypBindList_opt ME FE GE UE VE (plusEnv TE dbsTE) tbs_opt
           (* Here dbsTE will get destructively updated too. *)
           val _ = checkNoRebindingsTyEnv loc (plusEnv dbsTE tbsTE)
-	            "the same type constructor is defined twice in this abstype declaration"	      
+	            "the same type constructur is defined twice in this abstype declaration"	      
           val (VE',dbsTE') = elabDatBindList ME FE GE UE VE (plusEnv (plusEnv TE dbsTE) tbsTE) dbs
           val _ = checkNoRebindingsVarEnv loc VE'
 	             "the same constructor is bound twice in this abstype declaration"
           val () = maximizeEquality dbsTE'
-          val () = setEquality tbsTE;  
+          val () = setEquality tbsTE;
           val EXISTS(T2,(ME2,FE2,GE2,VE2, TE2)) =
             elabDec ME FE GE UE (plusEnv VE VE')
-                    (plusEnv (plusEnv TE dbsTE') tbsTE)  dec2
+                    (plusEnv (plusEnv TE dbsTE') tbsTE) onTop dec2
       in
         (* Now let's destructively update the equality attributes *)
         (* and the lists of constructors! *)
         (* Here VE2 and TE2 will be implicitly influenced too. *)
         let val dbsTE2 = absTE dbsTE'; 
         in
-           setEquality tbsTE; (* cvr: TODO review why is this repeated? *)
-           decrBindingLevel();
-	   refreshExEnv(EXISTS(T1@T2,(ME2,FE2,GE2,VE2, plusEnv(plusEnv dbsTE2 tbsTE) TE2)))
+        setEquality tbsTE;
+        decrBindingLevel();
+        EXISTS(T1@T2,(ME2,FE2,GE2,VE2, plusEnv(plusEnv dbsTE2 tbsTE) TE2))
         end
         (* cvr: *)
       end
   | EXCEPTIONdec ebs =>
-     EXISTS([],(NILenv,NILenv,NILenv,(elabExBindList ME FE GE UE VE TE  ebs), NILenv))
+     EXISTS([],(NILenv,NILenv,NILenv,(elabExBindList ME FE GE UE VE TE onTop ebs), NILenv))
   | LOCALdec (dec1, dec2) =>
-      let val EXISTS(T',(ME',FE',GE',VE', TE')) = 
-	         refreshExEnv(elabDec ME FE GE UE VE TE  dec1)
-          val _ = incrBindingLevel()
-          val _ = refreshTyNameSet PARAMETERts T'
+      let val EXISTS(T',(ME',FE',GE',VE', TE')) =
+	      elabDec ME FE GE UE VE TE onTop dec1;
+          val _ = incrBindingLevel();
+          val _ = refreshTyNameSet PARAMETERts T';
           val EXISTS(T'',(ME'', FE'', GE'', VE'',TE'')) =
-                elabDec (plusEnv ME ME') (plusEnv FE FE') (plusEnv GE GE') 
-                        UE (plusEnv VE VE') (plusEnv TE TE')  dec2
+            elabDec (plusEnv ME ME') (plusEnv FE FE') (plusEnv GE GE') UE (plusEnv VE VE') (plusEnv TE TE') onTop dec2
       in  decrBindingLevel();
-          refreshExEnv(EXISTS(T'@T'',(ME'', FE'', GE'', VE'', TE'')))
+	  EXISTS(T'@T'',(ME'', FE'', GE'', VE'', TE''))
       end
   | OPENdec longmodidinfos =>
   EXISTS([],
@@ -2408,23 +2379,22 @@ and elabDec (ME:ModEnv) (FE:FunEnv) (GE:SigEnv) (UE:UEnv) (VE:VarEnv)
   | EMPTYdec => EXISTS([],(NILenv, NILenv,NILenv,NILenv, NILenv))
   | SEQdec (dec1, dec2) =>
       let val EXISTS(T',(ME',FE',GE',VE', TE')) =
-            elabDec ME FE GE UE VE TE  dec1
+            elabDec ME FE GE UE VE TE onTop dec1
           val _ = incrBindingLevel();
           val _ = refreshTyNameSet PARAMETERts T';
           val EXISTS(T'',(ME'', FE'', GE'', VE'',TE'')) =
-            elabDec (plusEnv ME ME') (plusEnv FE FE') (plusEnv GE GE')  UE (plusEnv VE VE') (plusEnv TE TE')  dec2
+            elabDec (plusEnv ME ME') (plusEnv FE FE') (plusEnv GE GE')  UE (plusEnv VE VE') (plusEnv TE TE') onTop dec2
       in  (decrBindingLevel();
-	   (*cvr: is this refresh too expensive? *)
-	   refreshExEnv(EXISTS(T'@T'',(plusEnv ME' ME'', plusEnv FE' FE'',plusEnv GE' GE'',plusEnv VE' VE'', plusEnv TE' TE''))))
+	   EXISTS(T'@T'',(plusEnv ME' ME'', plusEnv FE' FE'',plusEnv GE' GE'',plusEnv VE' VE'', plusEnv TE' TE'')))
       end
   | FIXITYdec _ => EXISTS([],(NILenv,NILenv,NILenv,NILenv,NILenv))
   | STRUCTUREdec mbs => 
-      let val EXISTS(T,ME') = elabModBindList ME FE GE UE VE TE  mbs
-      in refreshExEnv(EXISTS(T,(ME',NILenv,NILenv,NILenv, NILenv)))
+      let val EXISTS(T,ME') = elabModBindList ME FE GE UE VE TE  mbs 
+      in    EXISTS(T,(ME',NILenv,NILenv,NILenv, NILenv))
       end
   | FUNCTORdec fbs => 
-      let val EXISTS(T,FE') = elabFunBindList ME FE GE UE VE TE  fbs
-      in refreshExEnv(EXISTS(T,(NILenv,FE',NILenv,NILenv, NILenv)))
+      let val EXISTS(T,FE') = elabFunBindList ME FE GE UE VE TE  fbs 
+      in    EXISTS(T,(NILenv,FE',NILenv,NILenv, NILenv))
       end
   | SIGNATUREdec sbs => 
       let val GE' = elabSigBindList ME FE GE UE VE TE  sbs 
@@ -2449,7 +2419,7 @@ and elabModBind (ME:ModEnv) (FE:FunEnv) (GE:SigEnv) (UE : UEnv)
 		       "This module expression is actually a functor \
 			\but should be a structure"
     in
-	  EXISTS(T,(locmodid,{qualid =  mkLocalName  modid, info = S}))
+	  EXISTS(T,(locmodid,{qualid = (* mkName onTop *) mkLocalName  modid, info = S}))
     end
   | elabModBind (ME:ModEnv) (FE:FunEnv) (GE:SigEnv) (UE : UEnv)
    (VE : VarEnv) (TE : TyEnv)  (ASmodbind (locmodid as (loc,modid),sigexp as (loc',_),exp)) = 
@@ -2458,7 +2428,7 @@ and elabModBind (ME:ModEnv) (FE:FunEnv) (GE:SigEnv) (UE : UEnv)
 	      |  STRmod S => normRecStr S 
       val tau = elabExp ME FE GE UE VE TE exp (PACKt(EXISTSexmod(T,M)))
   in
-        EXISTS(T,(locmodid,{qualid =  mkLocalName  modid, info = S})) 
+        EXISTS(T,(locmodid,{qualid = (* mkName onTop *) mkLocalName  modid, info = S})) 
   end
 and elabFunBindList (ME:ModEnv) (FE:FunEnv) (GE:SigEnv) (UE : UEnv)
    (VE : VarEnv) (TE : TyEnv)  mbs =
@@ -2478,7 +2448,7 @@ and elabFunBind (ME:ModEnv) (FE:FunEnv) (GE:SigEnv) (UE : UEnv) (VE : VarEnv) (T
 		       "This module expression is actually a structure \
 			\but should be a functor"
     in
-	  EXISTS(T,(locfunid,{qualid =  mkLocalName  funid, info = F}))
+	  EXISTS(T,(locfunid,{qualid = (* mkName onTop *) mkLocalName  funid, info = F}))
     end
 | elabFunBind (ME:ModEnv) (FE:FunEnv) (GE:SigEnv) (UE : UEnv) (VE : VarEnv) (TE : TyEnv)  
    (ASfunbind (locfunid as (loc,funid),sigexp as (loc',_),exp)) =  
@@ -2488,7 +2458,7 @@ and elabFunBind (ME:ModEnv) (FE:FunEnv) (GE:SigEnv) (UE : UEnv) (VE : VarEnv) (T
 	    |  FUNmod F => F
 	  val tau = elabExp ME FE GE UE VE TE exp (PACKt(EXISTSexmod(T,M)))
       in
-	  EXISTS(T,(locfunid,{qualid =  mkLocalName  funid, info = F}))
+	  EXISTS(T,(locfunid,{qualid = (* mkName onTop *) mkLocalName  funid, info = F}))
       end
 and elabSigBindList (ME:ModEnv) (FE:FunEnv) (GE:SigEnv) (UE : UEnv)
    (VE : VarEnv) (TE : TyEnv)  sbs =
@@ -2508,7 +2478,7 @@ and elabModExp expectation (ME:ModEnv) (FE:FunEnv) (GE:SigEnv) (UE : UEnv)
   case modexp' of
       DECmodexp dec => 
        let 
-	   val EXISTS(T',(ME',FE',GE',VE',TE')) = elabDec ME FE GE UE VE TE  dec
+	   val EXISTS(T',(ME',FE',GE',VE',TE')) = elabDec ME FE GE UE VE TE false dec
            val exmod = EXISTSexmod(T',(STRmod (NONrec (STRstr (sortEnv ME',
 							       sortEnv FE',
 							       NILenv,
@@ -2603,7 +2573,7 @@ and elabModExp expectation (ME:ModEnv) (FE:FunEnv) (GE:SigEnv) (UE : UEnv)
    | LETmodexp (dec, modexp) =>
       let 
 	  val EXISTS(T',(ME',FE',GE',VE', TE')) =
-	      elabDec ME FE GE UE VE TE  dec;
+	      elabDec ME FE GE UE VE TE false dec;
           val _ = incrBindingLevel();
           val _ = refreshTyNameSet PARAMETERts T';
           val EXISTSexmod(T'',M) =
@@ -2640,10 +2610,8 @@ and elabModExp expectation (ME:ModEnv) (FE:FunEnv) (GE:SigEnv) (UE : UEnv)
 	      X'
 	  end
       end
-  | FUNCTORmodexp (Applicative,(loc,modid),idKindDescRef,sigexp as (locsigexp,_),modexp) =>
-      let val _ = checkApplicativeModExp modexp
-	  val LAMBDAsig (T,M) = elabSigExp ME FE GE UE VE TE sigexp
-	  val _ = checkApplicativeMod locsigexp M
+  | FUNCTORmodexp (Applicative,(loc,modid),idKindDescRef,sigexp,modexp) =>
+      let val LAMBDAsig (T,M) = elabSigExp ME FE GE UE VE TE sigexp
 	  val (ME',FE') = case M of 
 	      STRmod S =>
                   (idKindDescRef := STRik;
@@ -2792,7 +2760,7 @@ and elabPrimValBind ME FE GE UE VE TE tvs (ii, ty, arity, n) =
       val ty_t = elabTy ME FE GE UE VE TE ty
       val {qualid, info = {idLoc,...}} = ii
       val pid = longIdentAsIdent (#id qualid) "elabPrimValBind"
-      val q =  mkLocalName pid 
+      val q = (* mkName onTop *) mkLocalName pid 
   in ((idLoc,pid),
       {qualid =q,
        info=(mkScheme tvs ty_t,mkPrimStatus arity n)})
@@ -2806,16 +2774,16 @@ and elabValDesc (ME:ModEnv) (FE:FunEnv) (GE:SigEnv) (UE:UEnv) (VE:VarEnv) (TE : 
       val ty_t = elabTy ME FE GE UE VE TE ty
       val {qualid, info = {idLoc,...}} = ii
       val vid = longIdentAsIdent (#id qualid) "elabValDesc"
-      val q =  mkLocalName vid 
+      val q = (* mkGlobalName *)  mkLocalName vid 
   in ((idLoc,vid), {qualid = q, info = (mkScheme tvs ty_t,VARname (REGULARo))}) end
 
-and elabExDesc (ME:ModEnv) (FE:FunEnv) (GE:SigEnv) (UE : UEnv) (VE : VarEnv) (TE : TyEnv) 
+and elabExDesc (ME:ModEnv) (FE:FunEnv) (GE:SigEnv) (UE : UEnv) (VE : VarEnv) (TE : TyEnv) onTop
                ((ii, ty_opt) : ExDesc) =
   let val _ = checkRebinding illegalCon ii
       val {qualid, info = {idLoc,idKind,...}} = ii
       val eid = longIdentAsIdent (#id qualid) "elabExDesc"
       val ei = mkExConInfo()
-      val q = mkLocalName eid  
+      val q = (* mkGlobalName *) mkLocalName eid  
   in
     idKind := { qualid=q, info=EXCONik ei };
     (case ty_opt of
@@ -2835,19 +2803,19 @@ and elabExDesc (ME:ModEnv) (FE:FunEnv) (GE:SigEnv) (UE : UEnv) (VE : VarEnv) (TE
   end
 
 and elabExDescList (ME:ModEnv) (FE:FunEnv) (GE:SigEnv) (UE : UEnv)
-  (VE : VarEnv) (TE : TyEnv)  eds =
+  (VE : VarEnv) (TE : TyEnv) onTop eds =
   closeEE (foldL_map (fn (locid, tau) => fn env =>
 		      bindOnceInEnv env locid tau
 		      	       "the same exception constructor is specified twice\ 
 				\ in an exception specification")
-                     (elabExDesc ME FE GE UE VE TE ) NILenv eds)
+                     (elabExDesc ME FE GE UE VE TE onTop) NILenv eds)
 
 
 and elabSigExp (ME:ModEnv) (FE:FunEnv) (GE:SigEnv) (UE:UEnv) (VE:VarEnv) (TE:TyEnv)
   (loc, sigexp) = 
   (case sigexp of
       SPECsigexp spec => 
-	  let val LAMBDA(T,S) = elabSpec ME FE GE UE VE TE  spec
+	  let val LAMBDA(T,S) = elabSpec ME FE GE UE VE TE false spec
               val _ = checkNoRebindingsStr loc S
      	                "the same identifier is specified twice in the body of this signature"
 	  in LAMBDAsig (T,STRmod (NONrec (removeGEofStr S)))
@@ -2896,8 +2864,8 @@ and elabSigExp (ME:ModEnv) (FE:FunEnv) (GE:SigEnv) (UE:UEnv) (VE:VarEnv) (TE:TyE
 	  end
    | WHEREsigexp (sigexp, tyvarseq, longtycon,ty) => (* cvr: TODO review *)
       (* Unlike SML, we reject where type constraints that construct inconsistent signatures 
-         by equating a specified datatype with a non-equivalent type or datatype. 
-	 In SML, an inconsistent signature can never be implemented, but in Mosml it
+         by equating a specified datatype with an non-equivalent type or datatype. 
+	 In SML, an inconsitent signature can never be implemented, but in Mosml it
          can, by using a recursive structure, so we have to rule out inconsitent signatures from
 	 the start.
        *)
@@ -3007,6 +2975,7 @@ and elabSigExp (ME:ModEnv) (FE:FunEnv) (GE:SigEnv) (UE:UEnv) (VE:VarEnv) (TE:TyE
 		       raise Toplevel));
 		 LAMBDAsig(remove tn T,STRmod RS) 
 	      end)
+
    | RECsigexp ((_,modid),sigexp as (locforward,_),sigexp' as (locbody,_)) =>
           let val LAMBDAsig(T,M) = elabSigExp ME FE GE UE VE TE  sigexp
 	      val (ME',RS) = 
@@ -3043,11 +3012,16 @@ and elabSigExp (ME:ModEnv) (FE:FunEnv) (GE:SigEnv) (UE:UEnv) (VE:VarEnv) (TE:TyE
 			   msgEBlock();
 			   errMatchReason "body" "forward specification" matchReason;
 			   raise Toplevel)
+	      val T2T' = map (fn tn as {info = ref {tnSort = 
+						    REAts (APPtyfun tyapp),
+						    ...},
+					...} => (tn,tyapp)
+			      | _ => fatalError "elabRecSigExp")
+		              T
 	  in
             (decrBindingLevel();
-	     LAMBDAsig(T',STRmod (RECrec(RS,RS'))))
+	     LAMBDAsig(T',copyMod T2T' [] (STRmod (RECrec(RS,RS'))))) 
 	  end)
-
 and elabModDesc (ME:ModEnv) (FE:FunEnv) (GE:SigEnv) (UE:UEnv) (VE:VarEnv) (TE : TyEnv) (MODDESCmoddesc (locmodid as (loc,modid), sigexp as (loc',_)) : ModDesc)=
   let val LAMBDAsig(T,M) = elabSigExp ME FE GE UE VE TE sigexp
       val S = case M of 
@@ -3083,7 +3057,7 @@ and elabFunDescList (ME:ModEnv) (FE:FunEnv) (GE:SigEnv) (UE:UEnv) (VE:VarEnv) (T
 	             "the same functor identifier is specified twice\ 
 		      \ in a functor specification"))
      (elabFunDesc ME FE GE UE VE TE ) (LAMBDA([],NILenv)) mds
-and elabSpec  (ME:ModEnv) (FE:FunEnv) (GE:SigEnv) (UE : UEnv) (VE : VarEnv) (TE : TyEnv)  (loc, spec') =
+and elabSpec  (ME:ModEnv) (FE:FunEnv) (GE:SigEnv) (UE : UEnv) (VE : VarEnv) (TE : TyEnv) onTop (loc, spec') =
   case spec' of
     VALspec (tyvarseq,vds) => 
        let val _ = checkDuplIds tyvarseq "Duplicate explicit type variable"
@@ -3156,7 +3130,7 @@ and elabSpec  (ME:ModEnv) (FE:FunEnv) (GE:SigEnv) (UE : UEnv) (VE : VarEnv) (TE 
       (if U_map unguardedExDesc eds <> [] then
          errorMsg loc "Type variables in an exception description"
        else (); (* cvr: TODO can be relaxed? *)
-       LAMBDA([],STRstr(NILenv, NILenv, NILenv, NILenv,elabExDescList ME FE GE [] VE TE  eds)))
+       LAMBDA([],STRstr(NILenv, NILenv, NILenv, NILenv,elabExDescList ME FE GE [] VE TE onTop eds)))
   | STRUCTUREspec mds =>
       let val LAMBDA(T,ME') = elabModDescList ME FE GE UE VE TE mds
       in LAMBDA(T,STRstr (ME', NILenv, NILenv, NILenv, NILenv)) end     
@@ -3166,12 +3140,12 @@ and elabSpec  (ME:ModEnv) (FE:FunEnv) (GE:SigEnv) (UE : UEnv) (VE : VarEnv) (TE 
   | LOCALspec (spec1, spec2) =>
       let val (ME',FE',GE',VE', TE') = elabLocalSpec ME FE GE UE VE TE spec1
       in
-          elabSpec (plusEnv ME ME') (plusEnv FE FE') (plusEnv GE GE') UE (plusEnv VE VE') (plusEnv TE TE')  spec2
+          elabSpec (plusEnv ME ME') (plusEnv FE FE') (plusEnv GE GE') UE (plusEnv VE VE') (plusEnv TE TE') onTop spec2
       end
   | EMPTYspec => LAMBDA([],STRstr(NILenv, NILenv, NILenv, NILenv, NILenv))
   | INCLUDEspec sigexp =>
       let val LAMBDAsig(T,M) = elabSigExp ME FE GE UE VE TE sigexp
-      in  case M of 
+      in  case M of  (* cvr: TODO revise to deal properly with onTop since this may kill static exception status *)
 	  FUNmod _ => 
 	      errorMsg loc "Illegal include: the included \
                             \signature must specify a structure, not a functor"
@@ -3180,7 +3154,7 @@ and elabSpec  (ME:ModEnv) (FE:FunEnv) (GE:SigEnv) (UE : UEnv) (VE : VarEnv) (TE 
                              \signature may not be recursive"
       end
   | SHARINGTYPEspec (spec,longtyconlist) => 
-      let val LAMBDA(T,S) = elabSpec ME FE GE UE VE TE  spec 
+      let val LAMBDA(T,S) = elabSpec ME FE GE UE VE TE onTop spec 
           val _ = incrBindingLevel();
           val _ = refreshTyNameSet PARAMETERts T;
           val LocTyFunOfLongTyCon = 
@@ -3231,7 +3205,7 @@ and elabSpec  (ME:ModEnv) (FE:FunEnv) (GE:SigEnv) (UE : UEnv) (VE : VarEnv) (TE 
 	  LAMBDA(TminusT'', S)
       end
   | SEQspec (spec1, spec2) =>
-      let val LAMBDA(T',S)  = elabSpec ME FE GE UE VE TE  spec1
+      let val LAMBDA(T',S)  = elabSpec ME FE GE UE VE TE onTop spec1
           val _ = incrBindingLevel();
           val _ = refreshTyNameSet PARAMETERts T';
           val LAMBDA(T'',S') =
@@ -3241,13 +3215,13 @@ and elabSpec  (ME:ModEnv) (FE:FunEnv) (GE:SigEnv) (UE : UEnv) (VE : VarEnv) (TE 
 		     UE 
 		     (plusEnv VE (VEofStr S)) 
 		     (plusEnv TE (TEofStr S)) 
-		      
+		     onTop 
 		     spec2
       in  decrBindingLevel();
 	  LAMBDA(T'@T'',SEQstr(S,S')) 
       end
   | SHARINGspec (spec1, (loc',longmodids)) =>
-	  let val LAMBDA(T, S) = elabSpec ME FE GE UE VE TE  spec1
+	  let val LAMBDA(T, S) = elabSpec ME FE GE UE VE TE onTop spec1
 	      val _ = incrBindingLevel();
 	      val _ = refreshTyNameSet PARAMETERts T;
 	      val Ss =
@@ -3321,12 +3295,14 @@ and elabLocalSpec ME FE GE UE VE TE (loc,spec) =
 
 
 fun elabToplevelDec (dec : Dec) =
- (if unguardedDec dec <> [] then
+(
+  if unguardedDec dec <> [] then
     errorMsg (xLR dec) "Unguarded type variables at the top-level"
   else ();
+  resetBindingLevel();
   let val EXISTS(T',(ME',FE',GE',VE',TE')) =
       elabDec (mkGlobalME()) (mkGlobalFE()) (mkGlobalGE()) [] 
-              (mkGlobalVE()) (mkGlobalTE())   dec  
+              (mkGlobalVE()) (mkGlobalTE()) (* ps: true *) false dec  
       val _ = if (!currentCompliance) <> Liberal 
 		   then Synchk.compliantTopDec dec 
 	      else ()
@@ -3335,15 +3311,18 @@ fun elabToplevelDec (dec : Dec) =
 		 cleanEnv GE', 
 		 cleanEnv VE', 
 		 cleanEnv TE'))
-  end);
+  end
+);
 
 fun elabStrDec (dec : Dec) =
- (if unguardedDec dec <> [] then
+(
+  if unguardedDec dec <> [] then
     errorMsg (xLR dec) "Unguarded type variables at the top-level"
   else ();
+  resetBindingLevel();
   let val EXISTS(T',(ME',FE',GE',VE',TE')) =
      elabDec (mkGlobalME()) (mkGlobalFE()) (mkGlobalGE()) [] 
-             (mkGlobalVE()) (mkGlobalTE())   dec  
+             (mkGlobalVE()) (mkGlobalTE()) (* ps: true *) false dec  
       val _ = if (!currentCompliance) <> Liberal 
 		   then Synchk.compliantStrDec dec 
 	      else ()
@@ -3353,18 +3332,20 @@ fun elabStrDec (dec : Dec) =
 		 cleanEnv GE', 
 		 cleanEnv VE', 
 		 cleanEnv TE'))
-  end)
+  end
+);
 
 fun elabToplevelSigExp (sigexp as (loc,_) : SigExp) =
-    let val LAMBDAsig(T,M) = 
-	 elabSigExp (mkGlobalME()) 
-	            (mkGlobalFE()) 
-		    (mkGlobalGE()) 
-		    [] 
-		    (mkGlobalVE()) 
-		    (mkGlobalTE()) 
-		    sigexp
-    in  case M of  
+    (resetBindingLevel();
+     let val LAMBDAsig(T,M) = 
+	  elabSigExp (mkGlobalME()) 
+	             (mkGlobalFE()) 
+		     (mkGlobalGE()) 
+		     [] 
+		     (mkGlobalVE()) 
+		     (mkGlobalTE()) 
+		     sigexp
+      in  case M of  
 	  FUNmod _ => 
 	      errorMsg loc "Illegal unit signature: the signature \
                             \must specify a structure, not a functor"
@@ -3373,34 +3354,38 @@ fun elabToplevelSigExp (sigexp as (loc,_) : SigExp) =
 		   then Synchk.compliantSigExp sigexp 
 	           else (); 
 	       LAMBDA(T,RS))
-    end
+      end);
 
 fun elabToplevelSpec (spec : Spec) =
-    let val StrSig = 
+    (resetBindingLevel();
+     let val StrSig = 
 	 elabSpec (mkGlobalME()) (mkGlobalFE()) 
 	          (mkGlobalGE()) [] 
 		  (mkGlobalVE()) (mkGlobalTE()) 
-                  spec
-    in  
-	(*  we could, but don't, check compliance since toplevel-mode .sig files don't need to be ported 
+                   (* ps: true *) false spec
+     in  
+	 (*  we could, but don't, check compliance since toplevel-mode .sig files don't need to be ported 
 	  if (!currentCompliance) <> Liberal 
 	       then Synchk.compliantTopSpec spec
 	 else (); *) 
 	 StrSig
-    end
+     end )
+;
 
 fun elabSigSpec (spec : Spec) =
-    let val StrSig = 
+    (resetBindingLevel();
+     let val StrSig = 
 	 elabSpec (mkGlobalME()) (mkGlobalFE()) 
 	          (mkGlobalGE()) [] 
 		  (mkGlobalVE()) (mkGlobalTE()) 
-                  spec
-    in  
-	if (!currentCompliance) <> Liberal 
-	    then Synchk.compliantSpec spec
-	else ();
-        StrSig
-    end
+                   (* ps: true *) false spec
+     in  
+	 if (!currentCompliance) <> Liberal 
+	     then Synchk.compliantSpec spec
+	 else ();
+	 StrSig
+     end )
+;
 
 
 

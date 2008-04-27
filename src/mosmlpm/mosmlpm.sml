@@ -6,7 +6,6 @@ val usage =
      \  -quiet          Make mosmlpm less chatty\n\
      \  -standalone     Pass the option -standalone on to mosmlc\n"
 
-structure PMCompile = PMCompile (Compiler)
 
 local
     val compileOnly = ref false
@@ -37,15 +36,11 @@ fun main () =
                ,("-debug",      ArgParse.Unit (assignTrue PMCompile.debugFlag))
 	       ] (assign filename)
     in  if !filename = "" then 
-	    ( app print ["Error: no project file specified\n", 
-			 usage]
-            ; OS.Process.exit OS.Process.failure
-            )
+	    app print ["Error: no project file specified\n", 
+		       usage]
 	else compileAndLink (!filename)
     end
 end
 
-val _ = (main() before OS.Process.exit OS.Process.success)
-        handle e => (print ("Error occurred:\n"^exnMessage e^"\n");
-		     OS.Process.exit OS.Process.failure)
+val _ = main()
 

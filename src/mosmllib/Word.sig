@@ -8,7 +8,6 @@ val orb        : word * word -> word
 val andb       : word * word -> word
 val xorb       : word * word -> word
 val notb       : word -> word
-val ~          : word -> word
 
 val <<         : word * word -> word
 val >>         : word * word -> word
@@ -59,9 +58,7 @@ val fromLargeInt  : int -> word
 
    [xorb(w1, w2)] returns the bitwise `exclusive or' or w1 and w2.
 
-   [notb w] returns the bitwise negation (one's complement) of w.
-
-   [~ w] returns the arithmetic negation (two's complement) of w.
+   [notb w] returns the bitwise negation of w.
 
    [<<(w, k)] returns the word resulting from shifting w left by k
    bits.  The bits shifted in are zero, so this is a logical shift.
@@ -137,22 +134,12 @@ val fromLargeInt  : int -> word
       DEC     (0w)?[0-9]+
       HEX     (0wx|0wX|0x|0X)?[0-9a-fA-F]+
 
-   [toInt w] returns the (non-negative) default size int represented
-   by bit-pattern w.  Raises Overflow in case w is not representable
-   as an integer.
+   [toInt w] returns the (signed) integer represented by bit-pattern w.
+   [toIntX w] returns the (signed) integer represented by bit-pattern w.
+   [fromInt i] returns the word representing integer i.
 
-   [toIntX w] returns the (signed) default size int represented by
-   twos's complement bit-pattern w.
-
-   [fromInt i] returns the word (bit-pattern) representing integer i.
-
-   [toLargeInt w] returns the (non-negative) largest size int
-   represented by bit-pattern w.  Raises Overflow in case w is not
-   representable as an integer.
-
-   [toLargeIntX w] returns the (signed) largest size int represented
-   by two's complement bit-pattern w.  
-
+   [toLargeInt w] returns the (signed) integer represented by bit-pattern w.
+   [toLargeIntX w] returns the (signed) integer represented by bit-pattern w.
    [fromLargeInt i] returns the word representing integer i.
 
    [toLargeWord w] returns w.

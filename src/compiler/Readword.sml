@@ -24,8 +24,7 @@ fun from_stream is =
           | #"\t"   => readword()
           | c =>
               (CharArray.update(buff, 0, c);
-               CharArraySlice.vector(CharArraySlice.slice(buff, 0, 
-							  SOME (readchars 1))))
+               CharArray.extract(buff, 0, SOME (readchars 1)))
       fun readwords l =
         (readwords(readword() :: l))
            handle Size => List.rev l

@@ -48,27 +48,17 @@ sp is a local copy of the global variable extern_sp. */
 
 typedef unsigned char opcode_t;
 
-/* byte_raise_break_exn raises the Interrupt exception
-   (GETGLOBAL takes a long (4B) arg) 
+/* Code for raising the Interrupt exception (GETGLOBAL takes a short arg) */
 
-   byte_callback[123]_code do callbacks from C to ML code:
-   POP, 1, 0 means pop(1) 
-*/
+static opcode_t byte_raise_break_exn[] = 
+       { GETGLOBAL, EXN_INTERRUPT, 0, RAISE };
+#define RAISE_CODE_LEN 4
 
-#if defined(MOSML_BIG_ENDIAN) && !defined(ALIGNMENT)
-static opcode_t byte_raise_break_exn[] =
-       { GETGLOBAL, 0, 0, 0, EXN_INTERRUPT, RAISE };
-static opcode_t byte_callback1_code[] = { ACC1, APPLY1, POP, 0, 1, STOP };
-static opcode_t byte_callback2_code[] = { ACC2, APPLY2, POP, 0, 1, STOP };
-static opcode_t byte_callback3_code[] = { ACC3, APPLY3, POP, 0, 1, STOP };
-#else
-static opcode_t byte_raise_break_exn[] =
-       { GETGLOBAL, EXN_INTERRUPT, 0, 0, 0, RAISE };
+/* Code for callbacks from C to ML code: POP, 1, 0 means pop(1) */
+
 static opcode_t byte_callback1_code[] = { ACC1, APPLY1, POP, 1, 0, STOP };
 static opcode_t byte_callback2_code[] = { ACC2, APPLY2, POP, 1, 0, STOP };
 static opcode_t byte_callback3_code[] = { ACC3, APPLY3, POP, 1, 0, STOP };
-#endif
-#define RAISE_CODE_LEN 6
 #define CALLBACK_CODE_LEN 6
 
 CODE callback1_code;		/* Set by interprete on initialization */
@@ -695,15 +685,15 @@ EXTERN value interprete(int mode, bytecode_t bprog, int code_size, CODE* rprog)
       *--sp = accu;
       /* Fallthrough */
     Instruct(GETGLOBAL):
-      accu = Field(global_data, u32pc);
-      pc += LONG;
+      accu = Field(global_data, u16pc);
+      pc += SHORT;
       Next;
 
     Instruct(PUSH_GETGLOBAL_APPLY1): 
     { sp -= 4;
       sp[0] = accu;
-      accu = Field(global_data, u32pc);
-      pc += LONG;
+      accu = Field(global_data, u16pc);
+      pc += SHORT;
       sp[1] = (value)pc;
       sp[2] = env;
       sp[3] = Val_long(extra_args);
@@ -735,8 +725,12 @@ EXTERN value interprete(int mode, bytecode_t bprog, int code_size, CODE* rprog)
         }
       }
 #endif
-#if defined(macintosh) && !defined(PERIODIC_ACTION_FREQ)
-       ui_periodic_action();
+#ifdef macintosh
+#ifndef __MWERKS__
+      { static int spin_count = 1;
+        if (--spin_count == 0) { spin_count = 24; SpinCursor ((short) 1); }
+      }
+#endif
 #endif
 #if ( defined(MSDOS) && defined(__GNUC__) ) || defined(WIN32)
       { static int poll_count = 1;
@@ -751,8 +745,8 @@ EXTERN value interprete(int mode, bytecode_t bprog, int code_size, CODE* rprog)
       sp -= 4;
       sp[0] = accu;
       sp[1] = arg2;
-      accu = Field(global_data, u32pc);
-      pc += LONG;
+      accu = Field(global_data, u16pc);
+      pc += SHORT;
       sp[2] = (value)pc;
       sp[3] = env;
       sp[4] = Val_long(extra_args);
@@ -767,8 +761,8 @@ EXTERN value interprete(int mode, bytecode_t bprog, int code_size, CODE* rprog)
       sp[0] = accu;
       sp[1] = arg2;
       sp[2] = arg3;
-      accu = Field(global_data, u32pc);
-      pc += LONG;
+      accu = Field(global_data, u16pc);
+      pc += SHORT;
       sp[3] = (value)pc;
       sp[4] = env;
       sp[5] = Val_long(extra_args);
@@ -784,8 +778,8 @@ EXTERN value interprete(int mode, bytecode_t bprog, int code_size, CODE* rprog)
       sp[1] = arg2;
       sp[2] = arg3;
       sp[3] = arg4;
-      accu = Field(global_data, u32pc);
-      pc += LONG;
+      accu = Field(global_data, u16pc);
+      pc += SHORT;
       sp[4] = (value)pc;
       sp[5] = env;
       sp[6] = Val_long(extra_args);
@@ -798,7 +792,7 @@ EXTERN value interprete(int mode, bytecode_t bprog, int code_size, CODE* rprog)
       sp = sp + u16pc - 2; pc += SHORT;
       sp[0] = accu;
     getglobal_appterm:
-      accu = Field(global_data, u32pc);
+      accu = Field(global_data, u16pc);
       pc = Code_val(accu);
       env = accu;
       goto check_signals;
@@ -837,9 +831,9 @@ EXTERN value interprete(int mode, bytecode_t bprog, int code_size, CODE* rprog)
     }
 
     Instruct(SETGLOBAL):
-      modify(&Field(global_data, u32pc), accu);
+      modify(&Field(global_data, u16pc), accu);
       accu = Val_unit; /* ? */
-      pc += LONG;
+      pc += SHORT;
       Next;
 
 /* Allocation of blocks */

@@ -1,5 +1,5 @@
 (* Testing the Postgres interface -- 1998-10-29, 1998-11-07,
-   1999-08-08, 1999-09-14, 2000-05-30, 2001-02-03, 2004-01-12 *)
+   1999-08-08, 1999-09-14, 2000-05-30 *)
 
 app load ["Int", "Postgres", "Mosml"];
 
@@ -25,11 +25,11 @@ val info = (db pc, host pc, options pc, port pc, tty pc)
 val _ = (execute pc "drop table t"; ()) handle Fail _ => ();
 
 val _ = execute pc "create table t (fb bool, fi int4, ff8 float8,\
-        \ ff4 float4, ftx text, fv varchar, fd date, ftm time, fdt timestamp)";
+        \ ff4 float4, ftx text, fv varchar, fd date, ftm time, fdt datetime)";
 
 fun inst tup = execute pc ("insert into t values " ^ tup)
 
-val res1 = inst "('false', 1234, 1234.1, 1234.2, 'Abc dEf', 'Abc DEFøa',\
+val res1 = inst "('false', 1234, 1234.1, 1234.2, 'Abc dEf', 'Abc DEF',\
                  \ '1998-12-24', '23:59:42', '1975-06-25 13:45:56')"
 
 val test1a = check' 
@@ -142,7 +142,7 @@ val test3d = check'
 	     NullVal
      andalso vcheck 
              (Vector.sub(tups3, 1)) 
-	     (false, 1234, 1234.1, 1234.2, "Abc dEf", "Abc DEFøa", 
+	     (false, 1234, 1234.1, 1234.2, "Abc dEf", "Abc DEF", 
 	      (1998, 12, 24), (23, 59, 42))
 	     (DateTime date)
      andalso vcheck 
@@ -151,7 +151,7 @@ val test3d = check'
 	     NullVal
      andalso vcheck 
              (getdyntup res3 1)
-	     (false, 1234, 1234.1, 1234.2, "Abc dEf", "Abc DEFøa", 
+	     (false, 1234, 1234.1, 1234.2, "Abc dEf", "Abc DEF", 
 	      (1998, 12, 24), (23, 59, 42))
 	     (DateTime date)
      andalso vcheck 
@@ -160,7 +160,7 @@ val test3d = check'
 	     NullVal
      andalso vcheck 
              (Vector.map (applyto 1) (Vector.tabulate(nfields res3, getdynfield res3)))
-	     (false, 1234, 1234.1, 1234.2, "Abc dEf", "Abc DEFøa", 
+	     (false, 1234, 1234.1, 1234.2, "Abc dEf", "Abc DEF", 
 	      (1998, 12, 24), (23, 59, 42))
 	     (DateTime date))
 
@@ -183,7 +183,7 @@ val test3f = check'
      andalso getreal res3 2 1 = 1234.1
      andalso getreal res3 3 1 = 1234.2
      andalso getstring res3 4 1 = "Abc dEf"
-     andalso getstring res3 5 1 = "Abc DEFøa"
+     andalso getstring res3 5 1 = "Abc DEF"
      andalso getdate res3 6 1 = (1998, 12, 24)
      andalso gettime res3 7 1 = (23, 59, 42)
      andalso Date.compare(getdatetime res3 8 1, date) = EQUAL
@@ -197,24 +197,18 @@ val test3ha = checkallbounds1 false ~1
 val test3hb = checkallbounds1 false 9
 val test3hc = checkallbounds1 true 8
 
-end
+end             
 
-local
+local 
     fun collector () =
 	let val buf = ref []
 	    fun append s = buf := s :: !buf
 	    fun return () = rev (!buf)
 	in (append, return) end
-(* Date format changed in Postgres 7, from this:
-   val expected =   
-	["f\t1234\t1234.1\t1234.2\tAbc dEf\tAbc DEFøa\t12-24-1998\t23:59:42\
+    val expected =   
+	["f\t1234\t1234.1\t1234.2\tAbc dEf\tAbc DEF\t12-24-1998\t23:59:42\
 	 \\tWed Jun 25 13:45:56 1975 CET",
 	 "t\t-1234\t-1234.1\t-1234.2\t\t\t03-01-1752\t04:59:42\t\\N"]
-*)
-    val expected =   
-	["f\t1234\t1234.1\t1234.2\tAbc dEf\tAbc DEFøa\t1998-12-24\t23:59:42\
-	 \\t1975-06-25 13:45:56",
-	 "t\t-1234\t-1234.1\t-1234.2\t\t\t1752-03-01\t04:59:42\t\\N"]
     val (append1, return1) = collector ()
     val (append2, return2) = collector ()
     val (append3, return3) = collector ()
@@ -224,7 +218,6 @@ local
 in
 
 val test4 = check'(fn _ => (copytableto (pc, "t", append1); 
-			    app print (return1 ());
 			    expected = return1 ()))
 
 val res5 = execute pc "delete from t";

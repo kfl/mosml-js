@@ -18,7 +18,6 @@ type CSig =
   uSigEnv:     (string, SigInfo) Hasht.t,    
   (* uTyNameSet is the set of names introduced in the unit's implementation, 
      or the set of names bound in the unit's interface (if any).
-     All type name levels should be 0 (this is ensured in rectifySignature before writing.) 
   *)
   uTyNameSet:    TyNameSet ref,  
   (* The optional Str uStrOpt comes from the unit's optional interface.
@@ -575,8 +574,28 @@ fun updateCurrentInfixBasis iBas =
   traverseEnv add_InfixBasis (revEnv iBas)
 ;
 
+
+(* cvr: added *)
+local
+fun updateTyName ({qualid,info}:TyName) = 
+  let val { tnStamp, 
+	    tnKind, 
+	    tnEqu, 
+	    tnSort, 
+	    tnLevel,
+            tnConEnv} = !info in
+      info := {tnStamp=tnStamp, 
+	       tnKind=tnKind, 
+	       tnEqu=tnEqu, 
+	       tnSort=tnSort, 
+	       tnLevel=0, (* update the level *)
+	       tnConEnv = tnConEnv}
+  end;    
+in
 fun updateCurrentStaticT T = 
-    (tyNameSetOfSig (!currentSig) := (!(tyNameSetOfSig (!currentSig))) @ T)
+  (app updateTyName T;
+   tyNameSetOfSig (!currentSig) := (!(tyNameSetOfSig (!currentSig))) @ T)
+end;
 
 fun extendCurrentStaticS S = 
     let val strOpt = strOptOfSig (!currentSig) 
@@ -665,7 +684,7 @@ fun mkGlobalGE() =
 fun execToplevelOpen loc uname =
   let val cu = findAndMentionSig loc uname in
     updateCurrentInfixBasis (mk1TopEnv (#uIBas cu));
-    updateCurrentStaticT  (!(#uTyNameSet cu)); (* tynames  assumed to have level 0 *)
+    updateCurrentStaticT  (!(#uTyNameSet cu));
     updateCurrentStaticVE (mk1TopEnv (#uVarEnv cu));
     updateCurrentStaticTE (mk1TopEnv (#uTyEnv cu));
     updateCurrentStaticME (mk1TopEnv (#uModEnv cu));
@@ -720,9 +739,6 @@ fun startCompilingUnit uname uident umode =
   currentRenEnv := mkRenEnv()
 );
 
-
-fun rectifyTyNameSet (T:TyNameSet) = app (fn tn => setTnLevel (#info tn) 0) T;
-
 fun rectifyVarEnv VE =
   let
     val excRen = ref( [] : (QualifiedIdent * (QualifiedIdent * int)) list )
@@ -744,7 +760,7 @@ fun rectifyVarEnv VE =
 
 
 fun rectifySignature() =
-  let val _ = rectifyTyNameSet (!(#uTyNameSet(!currentSig)))
+  let 
       val excRenList = rectifyVarEnv (#uVarEnv(!currentSig))
       val valRenList =
         foldEnv (fn id => fn stamp => fn acc => (id,stamp)::acc)

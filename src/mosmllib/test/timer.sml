@@ -26,8 +26,8 @@ val test2 = check(checkRealTimer rtmr <= checkRealTimer rtmr
 end
 
 local
-    val op <= = fn ({usr=usr1, sys=sys1}, {usr=usr2, sys=sys2})
-	=> usr1 <= usr2 andalso sys1 <= sys2;
+    val op <= = fn ({usr=usr1, sys=sys1, gc=gc1}, {usr=usr2, sys=sys2, gc=gc2})
+	=> usr1 <= usr2 andalso sys1 <= sys2 andalso gc1 <= gc1;
     fun cput1 < cput2 = (cput1 <= cput2) andalso (cput1 <> cput2);
 in
 val test3 = check(checkCPUTimer totalCPUTime <= checkCPUTimer totalCPUTime
@@ -46,8 +46,7 @@ let
 	    val cputimer  = startCPUTimer ()
 	    val realtimer = startRealTimer ()
 	    val res = f arg
-	    val {usr, sys} = checkCPUTimer cputimer;
-	    val gc = checkGCTime cputimer;
+	    val {usr, sys, gc} = checkCPUTimer cputimer;
 	    val rea = checkRealTimer realtimer;
 	    fun format t = Time.toString t
 	in 

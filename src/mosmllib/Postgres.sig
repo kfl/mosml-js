@@ -2,7 +2,7 @@
 
 type dbconn                                   (* Connection to server *)
 type dbresult                                 (* Result of a query    *)
-eqtype oid                                    (* Internal object id   *)
+type oid                                      (* Internal object id   *)
 
 exception Closed                              (* Connection is closed *)
 exception Null                                (* Field value is NULL  *)
@@ -55,8 +55,8 @@ val fnumber      : dbresult -> string -> int option
 val getint       : dbresult -> int -> int -> int
 val getreal      : dbresult -> int -> int -> real
 val getstring    : dbresult -> int -> int -> string
-val getdate      : dbresult -> int -> int -> int * int * int   (* Y M D *)
-val gettime      : dbresult -> int -> int -> int * int * int   (* H M S *)
+val getdate      : dbresult -> int -> int -> int * int * int (* Y M D *)
+val gettime      : dbresult -> int -> int -> int * int * int (* H M S *)
 val getdatetime  : dbresult -> int -> int -> Date.date
 val getbool      : dbresult -> int -> int -> bool
 val isnull       : dbresult -> int -> int -> bool
@@ -108,16 +108,7 @@ val applyto : 'a -> ('a -> 'b) -> 'b
 val formattable : dbresult -> Msp.wseq
 val showquery   : dbconn -> string -> Msp.wseq
 
-(* 
-
-   (Technical warning: This expects the PostgreSQL server to use ISO
-   date format, such as 2002-07-25.  Also, if the PostgreSQL server
-   was compiled with support for multibyte-encodings (Unicode), the
-   database must be created with
-     createdb -E LATIN1 <dbname>
-   or you should set the environment variable PGCLIENTENCODING to
-   LATIN1 in the SML program's environment.)
- 
+(*
    [dbconn] is the type of connections to a PostgreSQL database.
 
    [dbresult] is the type of result sets from SQL queries.

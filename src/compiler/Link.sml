@@ -67,21 +67,10 @@ fun check_file name stampOpt pending processed =
 			msgEOL();
 			msgEBlock();
 			processed))
-	| NONE => let val (truename, tables) = 
-		          case stampOpt of 
-			      NONE       => read_file name
-			    | SOME stamp => 
-				  if !autolink then 
-				      let val res as (_, tables) = 
-					  read_file name
-				      in 
-					  if stamp = #cu_sig_stamp tables then
-					      res
-					  else
-					      raise WrongStamp 
-				      end
-				  else
-				      raise NotYet 
+	| NONE => let val implicit = case stampOpt of NONE => false | _ => true
+		      val _ = if not(!autolink) andalso implicit 
+			      then raise NotYet else ()
+		      val (truename, tables) = read_file name
 		      val precedingUnits = 
 			  Hasht.fold needs processed (#cu_mentions tables)
 		   in 

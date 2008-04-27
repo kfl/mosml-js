@@ -79,8 +79,7 @@ fun time f arg =
 	val cputimer  = startCPUTimer ()
 	val realtimer = startRealTimer ()
 	fun report () = 
-	    let val {usr, sys} = checkCPUTimer cputimer;
-		val gc = checkGCTime cputimer;
+	    let val {usr, sys, gc} = checkCPUTimer cputimer;
 		val rea = checkRealTimer realtimer;
 		fun format t = Time.toString t
 	    in TextIO.print("User: "     ^ format usr ^
@@ -128,7 +127,7 @@ fun run cmd args inp =
 	    (* This works for bash, csh and tcsh: *)
 	    (* catenate (cmd :: List.@(args, ["<", infile, "&>", outfile])) *)
 	val status = Process.system cmdline
-	val result = if Process.isSuccess status then 
+	val result = if status = Process.success then 
 			 Success (Byte.bytesToString (read outfile))
 		     else 
 			 ((Failure (Byte.bytesToString (read outfile)))

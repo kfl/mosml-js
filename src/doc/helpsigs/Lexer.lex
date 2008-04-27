@@ -145,7 +145,8 @@ fun store_string_char c =
   in
     if !string_index >= len then
       let val new_buff = array(len * 2, #"\000") in
-        copy { src = !string_buff, dst = new_buff, di = 0 };
+        copy
+          { src = !string_buff, si = 0, len = NONE, dst = new_buff, di = 0 };
         string_buff := new_buff
       end
     else ();
@@ -154,22 +155,22 @@ fun store_string_char c =
   end;
 
 fun get_stored_string() =
-  let open CharArraySlice
-      val s = vector(slice(!string_buff, 0, SOME (!string_index)))
+  let open CharArray
+      val s = extract(!string_buff, 0, SOME (!string_index))
   in
     string_buff := initial_string_buffer;
     s
   end;
 
 fun splitQualId s =
-  let open CharVectorSlice
+  let open CharVector
       val len' = size s - 1
       fun parse n =
         if n >= len' then
           ("", s)
-        else if CharVector.sub(s, n) = #"." then
-          ( vector(slice(s, 0, SOME n)),
-            vector(slice(s, n + 1, SOME(len' - n))) )
+        else if sub(s, n) = #"." then
+          ( extract(s, 0, SOME n),
+            extract(s, n + 1, SOME(len' - n)) )
         else
           parse (n+1)
   in parse 0 end;
