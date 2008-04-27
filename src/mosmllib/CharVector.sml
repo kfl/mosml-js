@@ -1,4 +1,4 @@
-(* CharVector -- SML Basis Library, 1995, 2000-10-26 *)
+(* CharVector *)
 
 type vector = string
 type elem = Char.char
@@ -13,42 +13,33 @@ in
 
     val length   : vector -> int  		= magic Word8Vector.length
     val sub      : vector * int -> elem         = magic Word8Vector.sub
-    val update   : vector * int * elem -> vector 
-						= magic Word8Vector.update
+    val extract  : vector * int * int option -> vector 
+						= magic Word8Vector.extract
     val concat   : vector list -> vector        = magic Word8Vector.concat
-    val find     : (elem -> bool) -> vector -> elem option 
-	                                        =  magic Word8Vector.find
-    val exists   : (elem -> bool) -> vector -> bool
-	                                        =  magic Word8Vector.exists
-    val all      : (elem -> bool) -> vector -> bool
-	                                        =  magic Word8Vector.all
 
-    val collate  : (elem * elem -> order) -> vector * vector -> order 
-                                                = magic String.collate
 
     val app      : (elem -> unit) -> vector -> unit
 						= magic Word8Vector.app
     val map      : (elem -> elem) -> vector -> vector
 						= magic Word8Vector.map
-    val findi    : (int * elem -> bool) -> vector -> (int * elem) option
-	                                        =  magic Word8Vector.findi
-
-    fun foldl (f : elem * 'b -> 'b) (e : 'b) (v : vector) : 'b
+    fun foldl (f : elem * 'b -> 'b) (e : 'b) v : 'b
 	= Word8Vector.foldl (magic f) e (magic v)
 
     fun foldr (f : elem * 'b -> 'b) (e : 'b) (v : vector) : 'b
 	= Word8Vector.foldr (magic f) e (magic v)
 	
-    fun appi (f : int * elem -> unit) (v : vector) : unit
+    fun appi (f : int * elem -> unit) (v : vector * int * int option) : unit
 	= Word8Vector.appi (magic f) (magic v)
 
-    fun mapi (f : int * elem -> elem) (v : vector) : vector
+    fun mapi (f : int * elem -> elem) (v : vector * int * int option) : vector
 	= magic(Word8Vector.mapi (magic f) (magic v))
 
-    fun foldli (f : int * elem * 'b -> 'b) (e : 'b) (v : vector) : 'b
+    fun foldli (f : int * elem * 'b -> 'b) (e : 'b) 
+	       (v : vector*int*int option) : 'b
         = Word8Vector.foldli (magic f) e (magic v)
 
-    fun foldri (f : int * elem * 'b -> 'b) (e : 'b) (v : vector) : 'b
+    fun foldri (f : int * elem * 'b -> 'b) (e : 'b) 
+	       (v : vector*int*int option) : 'b
 	= Word8Vector.foldri (magic f) e (magic v)
 
 (*
@@ -65,4 +56,3 @@ in
 						= magic Word8Vector.foldri
 *)
 end
-

@@ -30,9 +30,13 @@ void fixup_endianness(p, len)
       /* Instructions with a two-byte immediate argument */
     case PUSHACC: case ACCESS: case POP: case ASSIGN:
     case PUSHENVACC: case ENVACC: case DUMMY: case RETURN: 
+    case SETGLOBAL: case GETGLOBAL: 
     case APPTERM1: case APPTERM2: case APPTERM3: case APPTERM4:
     case PUSH_ENV1_APPTERM1: case PUSH_ENV1_APPTERM2: 
     case PUSH_ENV1_APPTERM3: case PUSH_ENV1_APPTERM4: 
+    case PUSH_GETGLOBAL: 
+    case PUSH_GETGLOBAL_APPLY1: case PUSH_GETGLOBAL_APPLY2:
+    case PUSH_GETGLOBAL_APPLY3: case PUSH_GETGLOBAL_APPLY4:
     case GETFIELD: case SETFIELD:
     case C_CALL1: case C_CALL2: case C_CALL3: case C_CALL4:
     case C_CALL5: 
@@ -50,19 +54,15 @@ void fixup_endianness(p, len)
     case BRANCHIFEQ: case BRANCHIFNEQ: case BRANCHIFLT:
     case BRANCHIFGT: case BRANCHIFLE: case BRANCHIFGE:
     case MAKEBLOCK: case PUSHCONSTINT: case CONSTINT:
-    case SETGLOBAL: case GETGLOBAL: 
-    case PUSH_GETGLOBAL: 
-    case PUSH_GETGLOBAL_APPLY1: case PUSH_GETGLOBAL_APPLY2:
-    case PUSH_GETGLOBAL_APPLY3: case PUSH_GETGLOBAL_APPLY4:
       Reverse_word(p);
       p += 4;
       break;
-      /* Instructions with one two-byte and one four-byte immediate argument */
+      /* Instructions with two two-byte immediate arguments */
     case PUSH_GETGLOBAL_APPTERM1: case PUSH_GETGLOBAL_APPTERM2: 
     case PUSH_GETGLOBAL_APPTERM3: case PUSH_GETGLOBAL_APPTERM4: 
       Reverse_short(p);
-      Reverse_word(p+2);
-      p += 6;
+      Reverse_short(p+2);
+      p += 4;
       break;
       /* Instructions with two four-byte immediate arguments */
     case BRANCHINTERVAL: 

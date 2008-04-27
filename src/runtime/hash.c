@@ -6,9 +6,8 @@
 
 static unsigned long hash_accu;
 static long hash_univ_limit, hash_univ_count;
-static char safe;		/* Fail on refs and exceeded limits */
 
-static void hash_aux(value obj);
+static void hash_aux();
 
 value hash_univ_param(count, limit, obj) /* ML */
      value obj, count, limit;
@@ -16,20 +15,6 @@ value hash_univ_param(count, limit, obj) /* ML */
   hash_univ_limit = Long_val(limit);
   hash_univ_count = Long_val(count);
   hash_accu = 0;
-  safe = 0;
-  hash_aux(obj);
-  return Val_long(hash_accu & 0x3FFFFFFF);
-  /* The & has two purposes: ensure that the return value is positive
-     and give the same result on 32 bit and 64 bit architectures. */
-}
-
-value hash_univ_safe_param(count, limit, obj) /* ML */
-     value obj, count, limit;
-{
-  hash_univ_limit = Long_val(limit);
-  hash_univ_count = Long_val(count);
-  hash_accu = 0;
-  safe = 1;
   hash_aux(obj);
   return Val_long(hash_accu & 0x3FFFFFFF);
   /* The & has two purposes: ensure that the return value is positive
@@ -41,19 +26,16 @@ value hash_univ_safe_param(count, limit, obj) /* ML */
 #define Combine(new)  (hash_accu = hash_accu * Alpha + (new))
 #define Combine_small(new) (hash_accu = hash_accu * Beta + (new))
 
-static void hash_aux(value obj)
+static void hash_aux(obj)
+     value obj;
 {
   unsigned char * p;
   mlsize_t i;
   tag_t tag;
 
   hash_univ_limit--;
-  if (hash_univ_count < 0 || hash_univ_limit < 0) {
-    if (safe) 
-      fatal_error("hash: count limit exceeded\n");
-    else
-      return;
-  }
+  if (hash_univ_count < 0 || hash_univ_limit < 0) return;
+
   if (Is_long(obj)) {
     hash_univ_count--;
     Combine(Long_val(obj));
@@ -78,17 +60,10 @@ static void hash_aux(value obj)
     switch (tag) {
     case String_tag:
       hash_univ_count--;
-      { 
-	mlsize_t len = string_length(obj);
-	i = len <= 128 ? len : 128;
-	// Hash on 128 first characters
-	for (p = &Byte_u(obj, 0); i > 0; i--, p++)
-	  Combine_small(*p);
-	// Hash on logarithmically many additional characters beyound 128
-	for (i=1; i+127 < len; i*=2)
-	  Combine_small(Byte_u(obj, 127+i));
-	break;
-      }
+      i = string_length(obj);
+      for (p = &Byte_u(obj, 0); i > 0; i--, p++)
+        Combine_small(*p);
+      break;
     case Double_tag:
       /* For doubles, we inspect their binary representation, LSB first.
          The results are consistent among all platforms with IEEE floats. */
@@ -116,9 +91,7 @@ static void hash_aux(value obj)
 	 terminate because the hash_univ_count gets decremented. */
       /* Poor idea to hash on the pointed-to structure, even so: it may change,
 	 and hence the hash value of the value changes, although the ref doesn't.
-	 This breaks most hash table implementations.  sestoft 2000-02-20. */
-      if (safe) 
-	fatal_error("hash: ref encountered\n");
+	 This breaks most hash table implementations.  sestoft 2000-02-20.
       Combine_small(tag);
       hash_univ_count--;
       /* hash_aux(Field(obj, 0)); */

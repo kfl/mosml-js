@@ -16,7 +16,7 @@ include Makefile.inc
 # Build the entire system for the first time
 
 world:
-	cd config; sh autoconf $(CC)
+	cd config; sh autoconf gcc
 	cd runtime; make all
 	cp runtime/camlrunm$(EXE) .
 	cd mosmlyac; make all
@@ -48,7 +48,6 @@ install:
 	test -d $(BINDIR) || mkdir -p $(BINDIR)
 	test -d $(LIBDIR) || mkdir -p $(LIBDIR)
 	test -d $(INCDIR) || mkdir -p $(INCDIR)
-	test -d $(DOCDIR) || mkdir -p $(DOCDIR)
 	test -d $(TOOLDIR) || mkdir -p $(TOOLDIR)
 	cd runtime; make install
 	cd config; make install
@@ -58,8 +57,7 @@ install:
 	cd compiler; make install
 	cd toolssrc; make install
 	cd lex; make install
-	(cd $(INCDIR)/..; rm -f config; ln -s include config)
-	cd doc; make install
+	(cd ..; rm -f config; ln -s include config)
 
 # Remove all generated files
 clean:

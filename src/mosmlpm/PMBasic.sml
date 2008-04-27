@@ -23,7 +23,6 @@ struct
 	fun fileChar c = 
 	    Char.isAlphaNum c 
 	    orelse c = #"_" orelse c = #"/" orelse c = #"-" orelse c = #"."
-	    orelse c = #":" orelse c = #"\\"
 
 	val ident = getChars1 fileChar 
     

@@ -241,36 +241,3 @@ Moscow ML release history
     * Socket.select timeout was wrong
     * Moved exnName and exnMessage to General (where they belong)
 
-2.01 (January 2004)
-  * Bugs fixed:
-    * Y2004 Overflow in Time.toString(Time.now()), Time.+(now(), zeroTime())
-    * Moscow ML 2.00 for Windows failed when loading structure Timer
-    * Misplaced double quote in Msp.ahrefa 
-
-2.02 (?)
-  * Support for dynamic linking and callback from C also under MacOS X
-  * There may now be 2 G globals (string literals etc) instead of 64 K
-  * Bugs fixed:
-    * The HTML files generated for mosmllib now have valid URLs
-    * Substring.app more efficient
-    * Recursive structure compilation (elabRecSigExp) fixed
-    * Several errors in Mosmlcookie
-    * Misplaced double quote in Msp.ahrefa 
-    * Exception Option wasn't available at top-level
-    * Linker did not check stamps of linked-in units
-    * Hash function now much faster on very long strings
-    * Double alignment constraints now correct with gcc-3.2 and Solaris
-    * Bug in Polyhash.filter
-    * Socket library returned only first 16 bytes of UDP datagram
-  * SML Basis Library changes:
-    * String and Substring: added concatWith, isSuffix, isSubstring, full
-    * ListPair: added zipEq, appEq, mapEq, foldlEq, foldrEq, allEq
-    * Added ArraySlice and VectorSlice structures, also for Char and Word8
-    * Added find, findi, all, exists, collate to vector, array and 
-      slice structures
-    * Added collate to List
-    * Added update to vector structures
-    * Path.{mkRelative,mkAbsolute} now take record arguments
-    * Negative Time.time values allowed
-    * OS.Process: new functions sleep and isSuccess; status not eqtype
-    * Listsort: added eqclasses, merge, mergeUniq

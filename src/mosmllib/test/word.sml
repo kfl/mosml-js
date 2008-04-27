@@ -1,7 +1,6 @@
 (* test/word.sml -- some test cases for Word, appropriate for a two's
    complement machine whose Int.precision = SOME 31 
-   PS 1995-03-19, 1995-07-12, 1995-11-06, 1996-04-01, 1996-10-01,
-   2000-10-24 *)
+   PS 1995-03-19, 1995-07-12, 1995-11-06, 1996-04-01, 1996-10-01 *)
 
 use "auxil.sml";
 
@@ -11,8 +10,6 @@ local
 	[op>, op<, op>=, op<=] : (int * int -> bool) list
     val [add, sub, mul, idiv,   imod] = 
 	[op+, op-, op*, op div, op mod] : (int * int -> int) list
-    val maxposint = valOf Int.maxInt;
-    val maxnegint = ~maxposint-1;
     open Word;
     val op > = gt and op < = lt and op >= = ge and op <= = le;
     val op + = add and op - = sub and op * = mul 
@@ -43,17 +40,9 @@ val test7b = checkrange (0, 513)
 
 val test8a = check (~1 = Word.toIntX (notb (i2w 0)));
 val test8b = check (0 = w2i (notb (i2w ~1)));
-val test8c = checkrange (~1000,1000)
-    (fn i => let val w = i2w i
-	     in w = notb(notb w) end);
-val test8d = check (0 = Word.toIntX (~ (i2w 0)));
-val test8e = check (1 = w2i (~ (i2w ~1)));
-val test8f = check (2 = w2i (~ (i2w ~2))); 
-val test8g = check (1023 = w2i (~ (i2w ~1023))); 
-val test8h = checkrange (~1000,1000)
-    (fn i => let val w = i2w i
-	     in w = ~(~w) end);
 
+val maxposint = valOf Int.maxInt;
+val maxnegint = ~maxposint-1;
 fun pwr2 0 = 1 
   | pwr2 n = 2 * pwr2 (n-1);
 fun rwp i 0 = i
@@ -79,7 +68,7 @@ val test9h = checkrange (1,65)
 
 val test10a = checkrange (1,65)
     (fn k => 0 = w2i (~>> (i2w 1, i2w k)));
-val test10b = checkrange (0,65)
+val test10b = checkrange (1,65)
     (fn k => ~1 = toIntX (~>> (i2w ~1, i2w k)));
 val test10c = checkrange (~513, 513)
     (fn i => i div 2 = toIntX (~>> (i2w i, i2w 1)));

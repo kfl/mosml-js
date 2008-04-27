@@ -265,6 +265,8 @@ int buildrealmap(bytecode_t byteprog, int code_size, int realaddress[])
     Instruct(ENVACC): 
     Instruct(DUMMY): 
     Instruct(RETURN):
+    Instruct(SETGLOBAL):
+    Instruct(GETGLOBAL):
     Instruct(APPTERM1):
     Instruct(APPTERM2):
     Instruct(APPTERM3):
@@ -273,6 +275,11 @@ int buildrealmap(bytecode_t byteprog, int code_size, int realaddress[])
     Instruct(PUSH_ENV1_APPTERM2):
     Instruct(PUSH_ENV1_APPTERM3):
     Instruct(PUSH_ENV1_APPTERM4):
+    Instruct(PUSH_GETGLOBAL):
+    Instruct(PUSH_GETGLOBAL_APPLY1): 
+    Instruct(PUSH_GETGLOBAL_APPLY2): 
+    Instruct(PUSH_GETGLOBAL_APPLY3): 
+    Instruct(PUSH_GETGLOBAL_APPLY4): 
     Instruct(GETFIELD):
     Instruct(SETFIELD):
     Instruct(C_CALL1):
@@ -285,13 +292,6 @@ int buildrealmap(bytecode_t byteprog, int code_size, int realaddress[])
 
     /* A four-byte unsigned argument. */
     Instruct(MAKEBLOCK):
-    Instruct(SETGLOBAL):
-    Instruct(GETGLOBAL):
-    Instruct(PUSH_GETGLOBAL):
-    Instruct(PUSH_GETGLOBAL_APPLY1): 
-    Instruct(PUSH_GETGLOBAL_APPLY2): 
-    Instruct(PUSH_GETGLOBAL_APPLY3): 
-    Instruct(PUSH_GETGLOBAL_APPLY4): 
       pc += LONG; realsize++;
       break;
 
@@ -322,7 +322,7 @@ int buildrealmap(bytecode_t byteprog, int code_size, int realaddress[])
     Instruct(PUSH_GETGLOBAL_APPTERM3):
     Instruct(PUSH_GETGLOBAL_APPTERM4):
       pc += SHORT; realsize++;
-      pc += LONG; realsize++;
+      pc += SHORT; realsize++;
       break;
 
     /* A one-byte argument and a table of four-byte signed (label) arguments */
@@ -572,6 +572,8 @@ realcode_t expandcode(bytecode_t byteprog, int code_size, void * jumptable[])
     Instruct(ENVACC): 
     Instruct(DUMMY): 
     Instruct(RETURN):
+    Instruct(SETGLOBAL):
+    Instruct(GETGLOBAL):
     Instruct(APPTERM1):
     Instruct(APPTERM2):
     Instruct(APPTERM3):
@@ -580,6 +582,11 @@ realcode_t expandcode(bytecode_t byteprog, int code_size, void * jumptable[])
     Instruct(PUSH_ENV1_APPTERM2):
     Instruct(PUSH_ENV1_APPTERM3):
     Instruct(PUSH_ENV1_APPTERM4):
+    Instruct(PUSH_GETGLOBAL):
+    Instruct(PUSH_GETGLOBAL_APPLY1): 
+    Instruct(PUSH_GETGLOBAL_APPLY2): 
+    Instruct(PUSH_GETGLOBAL_APPLY3): 
+    Instruct(PUSH_GETGLOBAL_APPLY4): 
     Instruct(GETFIELD):
     Instruct(SETFIELD):
     Instruct(C_CALL1):
@@ -594,13 +601,6 @@ realcode_t expandcode(bytecode_t byteprog, int code_size, void * jumptable[])
 
     /* A four-byte unsigned argument. */
     Instruct(MAKEBLOCK):
-    Instruct(SETGLOBAL):
-    Instruct(GETGLOBAL):
-    Instruct(PUSH_GETGLOBAL):
-    Instruct(PUSH_GETGLOBAL_APPLY1): 
-    Instruct(PUSH_GETGLOBAL_APPLY2): 
-    Instruct(PUSH_GETGLOBAL_APPLY3): 
-    Instruct(PUSH_GETGLOBAL_APPLY4): 
       realprog[codeptr++] = jumptable[*pc++]; 
       realprog[codeptr++] = (void*)(unsigned long)u32pc;
       pc += LONG;
@@ -633,14 +633,14 @@ realcode_t expandcode(bytecode_t byteprog, int code_size, void * jumptable[])
       pc += SHORT;
       break;
 
-    /* One two-byte and one four-byte unsigned argument. */
+    /* Two two-byte unsigned arguments. */
     Instruct(PUSH_GETGLOBAL_APPTERM1):
     Instruct(PUSH_GETGLOBAL_APPTERM2):
     Instruct(PUSH_GETGLOBAL_APPTERM3):
     Instruct(PUSH_GETGLOBAL_APPTERM4):
       realprog[codeptr++] = jumptable[*pc++]; 
       realprog[codeptr++] = (void*)(unsigned long)u16pc; pc += SHORT;
-      realprog[codeptr++] = (void*)(unsigned long)u32pc; pc += LONG;
+      realprog[codeptr++] = (void*)(unsigned long)u16pc; pc += SHORT;
       break;
 
     /* A one-byte argument and a table of four-byte signed (label) arguments. */

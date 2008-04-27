@@ -37,17 +37,13 @@ fun tryEvalLoad name =
     val () =
       let
         val stop = input_binary_int is
-	(* Debugging HOL too large object problem: *)
-	(* val _ = (print "Stop = "; print (Int.toString stop); print "\n") *)
         val start = pos_in is
         val code_len = stop - start
-	(* val _ = (print (Int.toString code_len); print "\n") *)
         val () = (block_len := code_len + 1)
         (* Now we have to check, whether the unit body is compatible *)
         (* with its compiled signature and previously loaded units. *)
         val () = seek_in is stop
         val tables = (input_value is : compiled_unit_tables)
-	(* val _ = (print "Got here 2\n") *)
         val () =
           Hasht.apply (fn uname' => fn stamp' =>
               let val stamp'' = Hasht.find (!watchDog) uname' in
@@ -219,7 +215,7 @@ fun evalUse filename =
 (* Compile a file *)
 
 fun tryEvalCompile mode context s =
-  protect_current_input (fn () => protectCurrentTypes (fn () => protectCurrentUnit (fn () =>
+  protect_current_input (fn () => protectCurrentUnit (fn () =>
     if Filename.check_suffix s ".sig" then
       let val filename = Filename.chop_suffix s ".sig" in
         compileSignature context
@@ -235,7 +231,7 @@ fun tryEvalCompile mode context s =
           filename
       end
     else
-      raise Fail "compile: unknown file name extension")))
+      raise Fail "compile: unknown file name extension"))
 ;
 
 fun evalCompile mode context s =
@@ -347,5 +343,4 @@ fun resetSMLTopDynEnv() =
     ("liberal",     repr (fn () => (currentCompliance := Liberal))),
     ("installPP",   repr evalInstallPP)
 ];
-
 

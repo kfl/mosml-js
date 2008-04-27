@@ -4,7 +4,7 @@
    Based on Peter Sestoft's mosmldep tool, first modified for Holmake,
    then for moscm, and finally(?) for this purpose.
 
-   Last modified: $Date: 2000-07-19 15:54:48 $ by $Author: kla $
+   Last modified: $Date: 2000-02-25 09:35:25 $ by $Author: kla $
 
    DOES NOT normalizes file names under DOS. (yet)
 
@@ -21,10 +21,6 @@ struct
    fun ext filename  = #ext(Path.splitBaseExt filename)
    fun base filename = #base(Path.splitBaseExt filename)
    fun unitname filename = base(#file(Path.splitDirFile filename))
-
-   (* returns true if file exists *)					
-   fun exists file = OS.FileSys.access (file,[])
-
 
    (* Lexer of stream *)
    fun createLexerStream (is : BasicIO.instream) =
@@ -128,31 +124,11 @@ struct
          ; prline "end"
          ; TextIO.closeOut dev
        end
-
-   fun processFile file =
-       let val mentions = Polyhash.mkPolyTable (37, Subscript)
-	   val _        = read mentions file
-	   val imports  = map #1 (Polyhash.listItems mentions)
-	   fun locexists n = exists(addExt n "sml")
-	   val localimp = List.filter locexists imports (* only those in the current dir *)
-	   val unit     = unitname file
-	   val pmfile   = addExt unit "pm"
-	   val dev      = TextIO.openOut pmfile
-			  before chat("Writing file: "^pmfile)
-	   fun pr s     = TextIO.output(dev, s)
-	   fun prline s = pr(s^"\n")
-       in  outimports pr localimp
-         ; prline ("structure "^file)
-         ; prline "end"
-         ; TextIO.closeOut dev
-       end	
-    
-   fun mosfile filename = ext filename = SOME "sml"
-(*
+			    
+    fun mosfile filename =
 	case ext filename of
 	    SOME s => List.exists (eq s) ["sml","sig"]
 	  | NONE   => false 
-*)
 		      
     fun group filenames =
 	let fun inGrp file = (eq (unitname file)) o unitname
@@ -168,7 +144,7 @@ struct
 	let val filenames = parseComLine args
 	    val (mosfiles, other) = List.partition mosfile filenames
 	    val groups = group mosfiles
-	in  List.app processFile mosfiles
+	in  List.app processgroup groups
 	end 
 
 

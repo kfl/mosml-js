@@ -1,11 +1,11 @@
-# Win32 Makefile for Moscow ML dynamically loadable gdbm library
+# Win32 Makefile for Moscow ML 1.43 dynamically loadable gdbm library
 
 # The runtime system must be compiled with support for dynamic libraries.
 # The GNU GDBM persistent hashtables must be installed.
 
 # Where to find GDBM header file and compiled library
 
-GDBMDIR=..\w32\gdbm.w32
+GDBMDIR=..\gdbm.w32
 
 CC=cl
 OPTS= /nologo /LD /MT /W1 /GB /O2 /Oy- /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS"
@@ -39,13 +39,13 @@ clean:
     cd $(GDBMDIR)
     NMAKE /f "gdbm.mak" CFG="gdbm - Win32 Release" CLEAN
     cd $(MOSMLHOME)\src\dynlibs\mgdbm
-    -del *.so
-    -del *.exp
-    -del *.lib
-    -del *.obj
-    -del empty
-    -del testdb
-    -del monthnames
+    del *.so
+    del *.exp
+    del *.lib
+    del *.obj
+    del empty
+    del testdb
+    del monthnames
 
 ### EVERYTHING THAT GOES BEYOND THIS COMMENT WILL BE ERASED WITHOUT WARNING
 ### DO NOT DELETE THIS LINE

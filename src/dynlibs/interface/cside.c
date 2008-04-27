@@ -13,7 +13,6 @@
 #include <alloc.h>		/* For copy_string, alloc_string, ...      */
 #include <memory.h>		/* For Modify, Push_roots, Pop_roots       */
 #include <str.h>		/* For string_length                       */
-#include <interp.h>		/* For callback                            */
 
 #ifdef WIN32
 #define EXTERNML __declspec(dllexport)
@@ -64,7 +63,7 @@ EXTERNML value cfr(value v)
 EXTERNML value cfs(value v)
 {
   char *oldp, *newp, *q;
-  int len;
+  int i, len;
   oldp = String_val(v);		/* Null-terminated heap-allocated string */
   len = string_length(v);	/* Much faster than strlen */
   
@@ -163,7 +162,7 @@ long listsum(value lst)
 long treesum(value v)
 {
   long sum = 0;
-  int contag = Tag_val(v);	/* 0 = Br, 1 = Brs, 2 = Lf */
+  int contag = Tag_val(v);	/* 0 = Lf, 1 = Br, 2 = Brs */
   switch (contag) {
   case 2: /* Lf */
     sum = 0; break;
@@ -186,11 +185,11 @@ long treesum(value v)
 }
 
 
-/* SML type: (int -> real) -> int -> string */
+/* SML type: (int -> string) -> int -> string */
 
 EXTERNML value cffun(value vf, value vi)
 {
-  int count = Long_val(vi);
+  int count = Val_long(vi);
   int ok = 1;
   value res;
   int i;

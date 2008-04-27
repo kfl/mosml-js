@@ -3,15 +3,13 @@
 # Requires latex, bibtex, makeindex, dvips, ps2pdf, psnup
 # Thus no guarantee this will work except on my workstations ...
 
-include ../Makefile.inc
-
 all: helpsigs allps allpdf
 
 allpdf: manual.pdf mosmlref.pdf mosmllib.pdf mosmllib2up.pdf 
 
 allps: manual.ps mosmlref.ps mosmllib.ps mosmllib2up.ps 
 
-LATEX=latex
+LATEX=latex -interaction=batchmode
 
 helpsigs:
 	cd helpsigs; make all base 
@@ -48,14 +46,15 @@ mosmllib2up.ps: mosmllib.ps
 	psnup -pa4 -2 mosmllib.ps mosmllib2up.ps
 
 install:
-	cp mosmlref.pdf $(DOCDIR)
-	cp manual.pdf $(DOCDIR)
-	cp mosmllib.pdf $(DOCDIR)
-	cp mosmllib2up.pdf $(DOCDIR)
+	cp mosmlref.pdf ../../doc
+	cp manual.pdf ../../doc
+	cp mosmllib.pdf ../../doc
+	cp mosmllib2up.pdf ../../doc
+	cp index.html ../../doc/mosmllib
 	cd helpsigs; make install
 
 clean:
-	rm -f *.aux *.dvi *.blg *.bbl *.blg *.log *.ps
+	rm -f *.aux *.dvi *.blg *.ps *.pdf *.bbl *.blg *.log
 	rm -f *.ind *.idx *.ilg *.toc
 	rm -f index.tex texsigsigs.tex
 	cd helpsigs; make clean

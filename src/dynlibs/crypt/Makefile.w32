@@ -5,7 +5,7 @@
 
 # Where to find crypt header file and compiled library
 
-CRYPTDIR=..\w32\cw32crypt.w32
+CRYPTDIR=..\cw32crypt.w32
 
 CC=cl
 OPTS= /nologo /LD /MT /W1 /GB /O2 /Oy- /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS"
@@ -34,10 +34,10 @@ clean:
     cd $(CRYPTDIR)
     nmake -f crypt.mak CFG="crypt - Win32 Release" CLEAN
     cd $(MOSMLHOME)\src\dynlibs\crypt
-    -del *.so
-    -del *.exp
-    -del *.lib
-    -del *.obj
+    del *.so
+    del *.exp
+    del *.lib
+    del *.obj
 
 depend: 
     del Makefile.bak

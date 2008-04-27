@@ -515,7 +515,7 @@ static value intern_fast_val(struct channel * chan, unsigned long magic)
     }
     wosize = Wosize_whsize(whsize);
     if (wosize > Max_wosize)
-      failwith("intern: structure too big #1");
+      failwith("intern: structure too big");
     res = alloc_shr(wosize, String_tag);
     hd = Hd_val (res);
     color = Color_hd (hd);
@@ -528,10 +528,8 @@ static value intern_fast_val(struct channel * chan, unsigned long magic)
     stat_free((char *) block);
   } else {
     /* Block has natural word size (32) */
-    // printf("wosize = %d\n", wosize);
-    if (wosize > Max_wosize) {
-      failwith("intern: structure too big #2");
-    }
+    if (wosize > Max_wosize)
+      failwith("intern: structure too big");
     res = alloc_shr(wosize, String_tag);
     hd = Hd_val (res);
     color = Color_hd (hd);
@@ -551,6 +549,7 @@ static value intern_fast_val(struct channel * chan, unsigned long magic)
 value intern_val(struct channel * chan)          /* ML */
 {
   unsigned long magic;
+
   magic = (uint32) getword(chan);
   if (magic < First_valid_magic_number || magic > Last_valid_magic_number)
     failwith("intern: bad object");
