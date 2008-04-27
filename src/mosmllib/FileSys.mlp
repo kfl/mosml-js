@@ -92,12 +92,12 @@ in
 		in
 		    if islink_ file then 
 			(incrlink(); 
-			 expand(mkAbsolute{path=readlink_ file, relativeTo=p}))
+			 expand(mkAbsolute(readlink_ file, p)))
 		    else
 			file
 		end
 	in 
-	    (expand(mkAbsolute{path=p, relativeTo=getDir()}))
+	    (expand(mkAbsolute(p, getDir())))
 	    handle Fail s => raiseSys "fullPath" (SOME p) s
 	end;
 
@@ -150,7 +150,7 @@ in
 
     fun fullPath p =
 	let open Path 
-	    val realp = mkCanonical(mkAbsolute{path=p, relativeTo=getDir()})
+	    val realp = mkCanonical(mkAbsolute(p, getDir()))
 	in 
 	    if access (realp, []) then realp 
 	    else raise raiseSys "fullPath" (SOME realp) 
@@ -221,7 +221,7 @@ in
 
     fun realPath p =
 	if Path.isAbsolute p then fullPath p
-	else Path.mkRelative{path=fullPath p, relativeTo=getDir()};
+	else Path.mkRelative(fullPath p, getDir());
 
     fun rmDir p = 
 	(rmdir_ p) handle Fail s => raiseSys "rmDir" (SOME p) s;

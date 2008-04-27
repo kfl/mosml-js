@@ -1,6 +1,4 @@
-(* Timer -- new basis 1995-03-20, 1995-09-14, 1995-11-06, 1997-03-07 
-       kfl: 2003-05-26
-*)
+(* Timer -- new basis 1995-03-20, 1995-09-14, 1995-11-06, 1997-03-07 *)
 
 (* Under DOS, real time and cpu time are the same *)
 
@@ -25,15 +23,10 @@ in
     fun checkCPUTimer {usr, sys, gc} = 
 	let val {gcSec, gcUsec, sysSec, sysUsec, usrSec, usrUsec} 
 	        = getrutime_ () 
-	in 
-	    {usr = fromSeconds usrSec + fromMicroseconds usrUsec - usr,
-	     sys = fromSeconds sysSec + fromMicroseconds sysUsec - sys }
+	in {usr = fromSeconds usrSec + fromMicroseconds usrUsec - usr,
+	    sys = fromSeconds sysSec + fromMicroseconds sysUsec - sys,
+	    gc  = fromSeconds gcSec  + fromMicroseconds gcUsec  - gc}
 	end
-
-    fun checkGCTime {usr, sys, gc} = 
-	let val {gcSec, gcUsec, sysSec, sysUsec, usrSec, usrUsec} 
-	        = getrutime_ () 
-	in fromSeconds gcSec  + fromMicroseconds gcUsec - gc end
 
     fun startRealTimer () = now ();
 

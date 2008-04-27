@@ -1,5 +1,5 @@
 (* test/filesys.sml
-   PS 1995-03-23, 1996-05-01, 1998-04-06, 1999-03-02
+   PS 1995-03-23, 1996-05-01
 *)
 
 (* Mac: changed "/" to ":", "." to ":", ".." to "::"
@@ -122,10 +122,14 @@ local
     val dstr = openDir "testdir";
 in
     val test7a = 
-        check'(fn _ => NONE = readDir dstr);
+        check'(fn _ => (* ":" = readDir dstr
+               andalso "::" = readDir dstr
+               andalso *) "" = readDir dstr);
     val _ = rewindDir dstr;
     val test7b = 
-        check'(fn _ => NONE = readDir dstr);
+        check'(fn _ => (* ":" = readDir dstr
+               andalso "::" = readDir dstr
+               andalso *) "" = readDir dstr);
     val _ = closeDir dstr;
     val test7c = (readDir dstr seq "WRONG")
                  handle OS.SysErr _ => "OK" | _ => "WRONG";

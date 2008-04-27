@@ -1,17 +1,5 @@
-signature PM_COMPILE =
-sig
-    type filename = string
-    val quiet : bool ref
-    val debugFlag : bool ref
-
-    val compile   : filename -> bool
-    val link      : string list -> filename -> filename -> bool
-    val linkFiles : filename -> filename list
-end
-
-functor PMCompile (Comp : COMPILER_INTERFACE) :> PM_COMPILE =
+structure PMCompile =
 struct
-    type filename = string
     local open PMBasic in
 
     fun error msg = raise Fail msg
@@ -24,100 +12,66 @@ struct
     fun debug msg = if !debugFlag then (app print msg; print "\n")
 		    else ()
 
-    local structure P = OS.Path
-    in
+
+    fun insertSep sep []      = []
+      | insertSep sep (x::xs) = x :: sep :: insertSep sep xs     
+
     fun newExt ext filename = 
-	let val base = P.base filename
+	let structure P = OS.Path
+	    val base = P.base filename
 	in  P.joinBaseExt{base = base, ext = SOME ext}
 	end
-    end
-
-    val toUi  = newExt "ui"
-    val toUo  = newExt "uo"
-    val toSig = newExt "sig"
 	    
     fun checkExt ext filename = OS.Path.ext filename = SOME ext
     val isSML = checkExt "sml"
     val isSIG = checkExt "sig"
     fun isML file = isSML file orelse isSIG file
 
-    fun unwindChDir toDir body =
-	let val current = OS.FileSys.getDir() 
-	                  before OS.FileSys.chDir toDir 
-	in  body() before OS.FileSys.chDir current
-	    handle e => (OS.FileSys.chDir current; raise e)
-	end
+    val toUi = newExt "ui"
+    val toUo = newExt "uo"
 
     fun normalizeName filename = OS.FileSys.fullPath filename
-
-    (* returns true if file exists *)					
-    fun exists file = OS.FileSys.access (file,[])
-
-    fun isNewer file1 file2 =
-	not (exists file2) orelse
-	let val t1 = OS.FileSys.modTime file1
-	    val t2 = OS.FileSys.modTime file2
-	in  Time.> (t1, t2)
-	end
-
-    fun isNewer2 file (f1, f2) = isNewer file f1 orelse isNewer file f2
-
 		  
     (* Functions fo manipulating context *)
+    type context = bool * filename list list
 
-   type context = Time.time          (* the newest ui encountered *) 
-                 * filename list list (* the set of ui files to pass to the 
-                                         compiler.*)
-
-    val initCont = (Time.zeroTime, [[]])
-
+    val initCont = (false, [[]])
     fun scope (dirty, cont)           = (dirty, [] :: cont)
     fun dropLocal (dirty, (x::_::xs)) = (dirty, x::xs)
     fun dropImports (dirty, files)    = (dirty, List.hd files)
     fun files (_,fs)                  = fs
+    fun dirty (d,_)                   = d
     fun setDirty dirty (_, files)     = (dirty, files)
-    
-    fun dirty (d,_) ui = exists ui andalso Time.>(d, OS.FileSys.modTime ui)
+    fun addImport (d1, fs1) (d2, fs2) = (d1 orelse d2, fs1 :: fs2)
+    fun addUI file (dirty, x::xs)     = (dirty, (toUi file :: x) :: xs)
 
-    local fun max (arg as (t1, t2)) = if Time.> arg then t1 else t2
-    in
-    fun addImport (d1, fs1) (d2, fs2) = (max(d1,d2), fs1 :: fs2)
-    fun addUI file (dirty, f::fs)     = 
-	let val ui = toUi file
-	    val stamp = OS.FileSys.modTime ui
-	in  (max(dirty, stamp), (ui :: f) :: fs)
-	end
-    end
 
-    fun isNewerList file []        = false
-      | isNewerList file (f :: fs) = isNewer file f orelse isNewerList file fs 
+    (* returns true if file exists *)					
+    fun exists file = OS.FileSys.access (file,[])
 
-    (* recompile returns a dirty flag for the following context and a
-       list of files to recompile.  
-    *)
-    fun recompile pmfile context smlfile =
-	let val sigfile  = toSig smlfile
-	    val binfiles as (ui, uo) = (toUi smlfile, toUo smlfile)
-	    val sigExist = exists sigfile
-	    val allfiles = if sigExist
-			   then [sigfile, smlfile]
-			   else [smlfile]
-	in 
-	    if dirty context ui
-	       orelse (if sigExist 
-		       then isNewer sigfile ui
-		       else isNewer2 smlfile binfiles)
-	       orelse exists ui andalso isNewer pmfile ui
-	       orelse exists uo andalso isNewer pmfile uo
-	    then allfiles
-	    else if sigExist andalso isNewer smlfile uo 	       
-	         then ( chat ["Reusing: ", ui]
-		      ; [smlfile]
-		      )
-	         else ( chat ["Reusing: ", newExt "{ui,uo}" smlfile]
-		      ; []
-	              )
-	end
+    (* [isNewer f1 f2] checks that f1 exists and if it newer than f2 *) 
+    fun isNewer file1 file2 =
+	 exists file1 andalso let val t1 = OS.FileSys.modTime file1
+				  val t2 = OS.FileSys.modTime file2
+			      in  Time.> (t1, t2)
+			      end
+
+    (* checks if a toplevel file need to be recompiled *)
+    fun uptodate context file =
+	not (dirty context)
+	andalso isNewer (toUo file) file
+	andalso isNewer (toUi file) file
+
+    (* checks if a structure file needs to be recompiled, *much* more
+       ugly than the predicate for toplevel files*)
+    fun strUptodate context file =
+	not (dirty context)
+	andalso
+	if isSIG file then isNewer (toUi file) file
+	else isNewer (toUo file) file
+	     andalso (not(exists (newExt "sig" file))
+		      orelse isNewer (toUi file) file)
+
 
 (*
     fun makeTempName file =
@@ -159,7 +113,7 @@ struct
       end handle _ => true
 *)
 
-(*    (* context is in reverse order *)
+    (* context is in reverse order *)
     fun mosmlc toplevel context file = 
 	let val up2date = if toplevel then uptodate else strUptodate
 	in
@@ -185,59 +139,41 @@ struct
 		    *) (true, return)
 		end
 	end
-*)
 
-    fun check f = List.foldl (fn (arg, res) => res andalso f arg) true
-
-    fun compileBody path pmfile body context =
+    fun compileBody path b context =
 	let fun compileFile toplevel file next =
-                if isSML file
-		then
-		    let val name = OS.Path.mkAbsolute{path       = file, 
-                                                      relativeTo = path}
-			val options = if toplevel then ["-toplevel"]
-				      else ["-structure"]
-			fun compile file =
-			    ( chat ["Compiling: ", file] 
-			    ; Comp.compile debug options (rev(List.concat(files context))) file
-			    )
-			val files = recompile pmfile context name
-		    in  if check compile files then 
-			    compileBody path pmfile next (addUI name context)
-			else error ("Could not compile: "^name)
-		    end
-		else error ("Cannot handle "^file^" in "^pmfile^
-			    "\nCan only handle .sml files.\n")
+		let val name = OS.Path.mkAbsolute(file,path)
+		    val (dirty, status) = mosmlc toplevel context name
+		    val context = addUI name (setDirty dirty context)
+	        in  if status then 
+			compileBody path next context
+		    else error ("Could not compile: "^file)
+		end
 	in
-	    case body of
+	    case b of
 		SRC (file,b)    => compileFile true file b
 	      | STRSRC (file,b) => compileFile false file b
 	      | LOCAL(b1,b2,b3) =>
-		    let val context = compileBody path pmfile b1 (scope context)
-			val context = compileBody path pmfile b2 (scope context)
+		    let val context = compileBody path b1 (scope context)
+			val context = compileBody path b2 (scope context)
 			val context = dropLocal context
-		    in  compileBody path pmfile b3 context
+		    in  compileBody path b3 context
 		    end 
 	      | NULL => context 
 	end
 
-    fun isIn name = List.exists (fn n => n = name)
-    fun indent files =
-	String.concat(foldl (fn(n,r) => "   "::n::"\n"::r) [] files)
-
-    
     fun compile filename =
 	let val table  = Polyhash.mkPolyTable(37, Subscript)
 	    val peek   = Polyhash.peek table
 	    val update = Polyhash.insert table
 
-	    fun compileImports openFiles imps context = 
+	    fun compileImports imps context = 
 		let fun oneImport (imp,cont) =
 			let val name = normalizeName imp 
 			in case peek name of
 			       SOME fs => addImport fs cont
 			     | NONE    => 
-			       let val res = compileFile openFiles name
+			       let val res = compileFile name
 			       in  update (name,res)
 			         ; addImport res cont
 			       end
@@ -245,31 +181,27 @@ struct
 		in  List.foldl oneImport context imps
 		end
 		    
-	    and compilePM openFiles prefix pmfile (PM{imports,body}) =
-		let val context = scope(compileImports openFiles imports 
-					                         initCont)
-		in  dropImports(compileBody prefix pmfile body context)
+	    and compilePM prefix (PM{imports,body}) =
+		let val context = scope(compileImports imports initCont)
+		in  dropImports(compileBody prefix body context)
 		end
 		    
-	    and compileFile openFiles filename = 
+	    and compileFile filename = 
 		let val name    = normalizeName filename
 		    val path    = OS.Path.dir name
-		in  if isIn name openFiles then
-		       error ("Cycle dectected:\n"^
-			      indent (name :: openFiles))
-		    else unwindChDir path (fn() =>
-		          compilePM (name :: openFiles) path name (parseFile name))
-			
+		    val current = OS.FileSys.getDir() 
+				  before OS.FileSys.chDir path 
+		in  (compilePM path (parseFile name) 
+		     before OS.FileSys.chDir current)
+		    handle e => (OS.FileSys.chDir current; raise e)
 		end
-	in  compileFile [] filename
-          ; true
+	in  compileFile filename
 	end
 
     
     fun findFilesBody path body accu =
 	let fun findFilesFile file body = 
-		let val name = OS.Path.mkAbsolute{path       = file,
-                                                  relativeTo = path}
+		let val name = OS.Path.mkAbsolute(file,path)
 		in  findFilesBody path body (name :: accu) 
 		end
 	in 
@@ -290,44 +222,42 @@ struct
 	    fun isIncluded file = Option.isSome(Polyhash.peek table file)
 	    fun mark file = Polyhash.insert table (file,())
     
-	    fun findFilesImports pmfiles imports accu =
+	    fun findFilesImports imports accu =
 		let fun oneImport (file, accu) =
 			let val name = normalizeName file
 			in  if isIncluded name then accu
-			    else ifindFiles pmfiles name accu 
-				 before mark name
+			    else ifindFiles name accu before mark name
 			end
 		in  List.foldl oneImport accu imports
 		end
 		    
-	    and findFilesPM pmfiles path (PM{imports,body}) =
-		(findFilesBody path body) o (findFilesImports pmfiles imports)
+	    and findFilesPM path (PM{imports,body}) =
+		(findFilesBody path body) o (findFilesImports imports)
 		
-	    and ifindFiles pmfiles filename accu =
+	    and ifindFiles filename accu =
 		let val name    = normalizeName filename
 		    val path    = OS.Path.dir name
-		in  if isIn name pmfiles then
-		       error ("Cycle dectected:\n"^
-			      indent (name :: pmfiles))
-		    else unwindChDir path (fn() =>
-	                 findFilesPM (name::pmfiles) path (parseFile name) accu)
+		    val current = OS.FileSys.getDir() 
+				  before OS.FileSys.chDir path 
+		in  (findFilesPM path (parseFile name) accu 
+		     before OS.FileSys.chDir current)
+		    handle e => (OS.FileSys.chDir current; raise e)
 		end
-	in  List.rev(ifindFiles [] filename [])
+	in  List.rev(ifindFiles filename [])
 	end
-
-    fun linkFiles filename =
-        let val smlfiles = findFiles filename
-            fun makeUo file = if isSML file then SOME(toUo file)
-                              else NONE
-        in List.mapPartial makeUo smlfiles
-        end
-
 
     (* For now assume that everything is compiled and upto date *)
     fun link options filename outfile =
-	let val uofiles  = linkFiles filename
+	let val smlfiles = findFiles filename
+	    fun makeUo file = if isSML file then SOME(toUo file)
+			      else NONE
+	    val uofiles  = List.mapPartial makeUo smlfiles
+	    val args = 
+		String.concat("mosmlc -toplevel -o ":: outfile :: " " ::
+				     options @ (insertSep " " uofiles))
 	in  chat ["Linking: ", outfile]
-          ; Comp.link debug options uofiles outfile
+          ; debug [args]
+          ; Process.system args = Process.success
 	end
 
     end

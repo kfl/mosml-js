@@ -2,11 +2,13 @@
 
 include ../../Makefile.inc
 
+MOSMLHOME=${HOME}/mosml
 MOSMLTOOLS=camlrunm $(MOSMLHOME)/tools
 MOSMLC=mosmlc -c 
 MOSMLL=mosmlc
 MOSMLLEX=mosmllex
 MOSMLYACC=mosmlyac
+CPP=/lib/cpp -P -traditional -Dunix -Umsdos
 
 all: Asynt.uo Database.uo Hasht.uo Htmlsigs.uo Lexer.uo Parser.uo Parsspec.uo \
 	Printbase.uo Stack.uo Texsigs.uo makebase.uo makebase
@@ -19,7 +21,7 @@ makebase : Database.uo Htmlsigs.uo Lexer.uo Parser.uo Parsspec.uo \
 	$(MOSMLL) -o makebase makebase.uo
 
 base:
-	./makebase $(LIBDIR)
+	makebase $(LIBDIR)
 
 install:
 	cp helpsigs.val $(LIBDIR)

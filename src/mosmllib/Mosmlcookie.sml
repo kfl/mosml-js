@@ -76,7 +76,7 @@ fun setCookie { name : string, value : string, expiry : Date.date option,
 		concatOpt "; expires=" (Option.map datefmt expiry),
 		concatOpt "; domain=" domain,
 		concatOpt "; path=" path,
-		"; secure=", Bool.toString secure, "\n"]
+		"; secure", Bool.toString secure]
     end
 
 (* To set multiple cookies *)
@@ -96,4 +96,4 @@ fun setCookie cookie = setCookies [cookie]
 fun deleteCookie { name : string, path : string option } : string =
     String.concat["Set-cookie: ", name, "=deleted;",
 		  "expires=Friday, 11-Feb-77 12:00:00 GMT",
-		  concatOpt "; path=" path, "\n"]
+		  concatOpt "; path=" path]

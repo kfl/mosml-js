@@ -1,6 +1,6 @@
 
 This is the first implementation of mosmlpm, thus it probably contains
-lots small bugs.  mosmlpm is modeled after the project manager
+lot small bugs.  mosmlpm is modeled after the project manager
 distributed with the ML Kit(http://www.it.edu/research/mlkit) designed
 by Martin Elsman.  But mosmlpm does not share any code with the ML Kit
 implementation.
@@ -9,8 +9,8 @@ implementation.
 Future plans:
 -------------
 * Make proper documentation together with Martin Elsman.  It is
-  planed that mosmlpm and the project manager for the ML Kit are
-  merged in a (hopefully) not so distant future.
+  planed that mosmlpm and the project manager for the ML Kit should
+  merge into one in a near future.
 
 * Generalize the grammar for project files:
   + Allow more that just one toplevel import
@@ -26,15 +26,15 @@ Future plans:
 How to bootstrap:
 -----------------
 1. make
-2. mv mosmlpm pm
-3. camlrunm pm mosmlpm.pm
+2. camlrunm mosmlpm mosmlpm.pm
 
 
 Known Bugs:
 -----------
 * Poor (non-existent) error messages
+* mosmlpm enters an infinite (well it is bound by the memory
+  available) loop if the project files are cyclic
 
 
 
-
-Ken Friis Larsen, July 2000.
+Ken Friis Larsen, June 2000.

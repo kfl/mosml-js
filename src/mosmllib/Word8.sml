@@ -47,8 +47,6 @@ in
     fun xorb (x, y) = xorb_ x y;
     fun notb x      = norm (xorb_ x (fromInt_ ~1)); 
 
-    val ~ = fn w => fromInt(~(toInt w)) 
-
     fun << (w, k) = 
 	if word2int k >= 8 orelse word2int k < 0 then fromInt_ 0
 	else norm (lshift_ w k);

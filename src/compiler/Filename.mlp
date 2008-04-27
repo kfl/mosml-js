@@ -1,8 +1,6 @@
 (* filename.mlp *)
 
-(* open CharVector; *)
-
-fun extract arg = Substring.string(Substring.extract arg)
+open CharVector;
 
 fun check_suffix name suff =
   let val name_len = size name

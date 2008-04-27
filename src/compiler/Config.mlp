@@ -1,7 +1,7 @@
 local open Fnlib in
 
 (* version string *)
-val version = "2.01b (June 2005)";
+val version = "2.00 (June 2000)";
 
 (* Integer ranges *)
 
@@ -52,12 +52,10 @@ val pervasiveOpenedUnits = ["General"];
 
 val fulllib = ["Option", "List", "ListPair", "Strbase", "Char", "String",
 	       "StringCvt", "TextIO", "BasicIO", "Vector",
-	       "Array", "VectorSlice", "ArraySlice", "Misc", "Substring",
+	       "Array", "Misc", "Substring",
 	       "Bool", "Int", "Real", "Math",
-	       "Word", "Word8", "Word8Vector", "Word8Array", 
-	       "Word8VectorSlice", "Word8ArraySlice", "Byte",
+	       "Word", "Word8", "Word8Vector", "Word8Array", "Byte",
 	       "BinIO", "CharVector", "CharArray",
-	       "CharVectorSlice", "CharArraySlice",
 	       "Time", "Timer", "Date", "Path",
 	       "FileSys", "Process", "OS", 
 	       "Mosml", "PP", "CommandLine"]
@@ -85,7 +83,6 @@ val preopenedPreloadedUnitSets = [
 #ifdef msdos
 
 val kosherUnitNames = [
-  ("Arraysli", "ArraySlice"),
   ("Basicio",  "BasicIO"),
   ("Binio",    "BinIO"),
   ("Chararra", "CharArray"),
@@ -100,7 +97,6 @@ val kosherUnitNames = [
   ("Stringcv", "StringCvt"),
   ("Substrin", "Substring"),
   ("Textio",   "TextIO"),
-  ("Vectorsl", "VectorSlice"),
   ("Word8arr", "Word8Array"),
   ("Word8vec", "Word8Vector")
 ];
@@ -108,28 +104,22 @@ val kosherUnitNames = [
 
 #ifdef win32
 val kosherUnitNames = [
-  ("Arrayslice",       "ArraySlice"),
-  ("Basicio",          "BasicIO"),
-  ("Binio",            "BinIO"),
-  ("Chararray",        "CharArray"),
-  ("Chararrayslice",   "CharArraySlice"),
-  ("Charvector",       "CharVector"),
-  ("Charvectorslice",  "CharVectorSlice"),
-  ("Commandline",      "CommandLine"),
-  ("Filesys",          "FileSys"),
-  ("Listpair",         "ListPair"),
-  ("Nj93",             "NJ93"),
-  ("Os",               "OS"),
-  ("Pp",               "PP"),
-  ("Sml90",            "SML90"),
-  ("Stringcvt",        "StringCvt"),
-  ("Substring",        "Substring"),
-  ("Textio",           "TextIO"),
-  ("Vectorslice",      "VectorSlice"),
-  ("Word8array",       "Word8Array"),
-  ("Word8arrayslice",  "Word8ArraySlice"),
-  ("Word8vector",      "Word8Vector"),
-  ("Word8vectorslice", "Word8VectorSlice")
+  ("Basicio",      "BasicIO"),
+  ("Binio",        "BinIO"),
+  ("Chararray",    "CharArray"),
+  ("Charvector",   "CharVector"),
+  ("Commandline",  "CommandLine"),
+  ("Filesys",      "FileSys"),
+  ("Listpair",     "ListPair"),
+  ("Nj93",         "NJ93"),
+  ("Os",           "OS"),
+  ("Pp",           "PP"),
+  ("Sml90",        "SML90"),
+  ("Stringcvt",    "StringCvt"),
+  ("Substring",    "Substring"),
+  ("Textio",       "TextIO"),
+  ("Word8array",   "Word8Array"),
+  ("Word8vector",  "Word8Vector")
 ];
 #endif
 

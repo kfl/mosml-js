@@ -11,7 +11,7 @@ allpdf: manual.pdf mosmlref.pdf mosmllib.pdf mosmllib2up.pdf
 
 allps: manual.ps mosmlref.ps mosmllib.ps mosmllib2up.ps 
 
-LATEX=latex
+LATEX=latex -interaction=batchmode
 
 helpsigs:
 	cd helpsigs; make all base 

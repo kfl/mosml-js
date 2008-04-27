@@ -23,7 +23,6 @@ file</A>.
 
 <A HREF="Array.html">Array</A>&nbsp;&nbsp;&nbsp;
 <A HREF="Array2.html">Array2</A>&nbsp;&nbsp;&nbsp;
-<A HREF="ArraySlice.html">ArraySlice</A>&nbsp;&nbsp;&nbsp;
 <A HREF="Arraysort.html">Arraysort</A>&nbsp;&nbsp;&nbsp;
 <A HREF="BasicIO.html">BasicIO</A>&nbsp;&nbsp;&nbsp;
 <A HREF="Binarymap.html">Binarymap</A>&nbsp;&nbsp;&nbsp;
@@ -34,9 +33,7 @@ file</A>.
 <A HREF="Callback.html">Callback</A>&nbsp;&nbsp;&nbsp;
 <A HREF="Char.html">Char</A>&nbsp;&nbsp;&nbsp;
 <A HREF="CharArray.html">CharArray</A>&nbsp;&nbsp;&nbsp;
-<A HREF="CharArraySlice.html">CharArraySlice</A>&nbsp;&nbsp;&nbsp;
 <A HREF="CharVector.html">CharVector</A>&nbsp;&nbsp;&nbsp;
-<A HREF="CharVectorSlice.html">CharVectorSlice</A>&nbsp;&nbsp;&nbsp;
 <A HREF="CommandLine.html">CommandLine</A>&nbsp;&nbsp;&nbsp;
 <A HREF="Date.html">Date</A>&nbsp;&nbsp;&nbsp;
 <A HREF="Dynarray.html">Dynarray</A>&nbsp;&nbsp;&nbsp;
@@ -80,6 +77,7 @@ file</A>.
 <A HREF="Socket.html">Socket</A>&nbsp;&nbsp;&nbsp;
 <A HREF="Splaymap.html">Splaymap</A>&nbsp;&nbsp;&nbsp;
 <A HREF="Splayset.html">Splayset</A>&nbsp;&nbsp;&nbsp;
+<A HREF="Splaytree.html">Splaytree</A>&nbsp;&nbsp;&nbsp;
 <A HREF="String.html">String</A>&nbsp;&nbsp;&nbsp;
 <A HREF="StringCvt.html">StringCvt</A>&nbsp;&nbsp;&nbsp;
 <A HREF="Substring.html">Substring</A>&nbsp;&nbsp;&nbsp;
@@ -89,14 +87,11 @@ file</A>.
 <A HREF="Timer.html">Timer</A>&nbsp;&nbsp;&nbsp;
 <A HREF="Unix.html">Unix</A>&nbsp;&nbsp;&nbsp;
 <A HREF="Vector.html">Vector</A>&nbsp;&nbsp;&nbsp;
-<A HREF="VectorSlice.html">VectorSlice</A>&nbsp;&nbsp;&nbsp;
 <A HREF="Weak.html">Weak</A>&nbsp;&nbsp;&nbsp;
 <A HREF="Word.html">Word</A>&nbsp;&nbsp;&nbsp;
 <A HREF="Word8.html">Word8</A>&nbsp;&nbsp;&nbsp;
 <A HREF="Word8Array.html">Word8Array</A>&nbsp;&nbsp;&nbsp;
-<A HREF="Word8ArraySlice.html">Word8ArraySlice</A>&nbsp;&nbsp;&nbsp;
-<A HREF="Word8Vector.html">Word8Vector</A>&nbsp;&nbsp;&nbsp;
-<A HREF="Word8VectorSlice.html">Word8VectorSlice</A>
+<A HREF="Word8Vector.html">Word8Vector</A>
 
 
 <H2>Description of the structures</H2>
@@ -108,9 +103,6 @@ file</A>.
 
 <TR><TD><A HREF="Array2.html">Array2</A>
 <TD>two-dimensional arrays<TD>S     
-
-<TR><TD><A HREF="ArraySlice.html">ArraySlice</A>
-<TD>mutable sub-arrays<TD>SF
 
 <TR><TD><A HREF="Arraysort.html">Arraysort</A>
 <TD>array sorting (quicksort)<TD>L  
@@ -134,7 +126,7 @@ file</A>.
 <TD>character-byte conversion<TD>SF
 
 <TR><TD><A HREF="Callback.html">Callback</A>
-<TD>registering ML values for access from C code<TD>&nbsp;
+<TD>registering ML values for access from C code<TD>
 
 <TR><TD><A HREF="Char.html">Char</A>
 <TD>characters<TD>SDFNO
@@ -142,14 +134,8 @@ file</A>.
 <TR><TD><A HREF="CharArray.html">CharArray</A>
 <TD>arrays of characters<TD>SF
 
-<TR><TD><A HREF="CharArraySlice.html">CharArraySlice</A>
-<TD>sub-arrays of characters<TD>SF
-
 <TR><TD><A HREF="CharVector.html">CharVector</A>
 <TD>vectors of characters (= strings)<TD>SF
-
-<TR><TD><A HREF="CharVectorSlice.html">CharVectorSlice</A>
-<TD>sub-vectors of characters (= substrings)<TD>SF
 
 <TR><TD><A HREF="CommandLine.html">CommandLine</A>
 <TD>program name and arguments<TD>SF
@@ -280,6 +266,9 @@ file</A>.
 <TR><TD><A HREF="Splayset.html">Splayset</A>
 <TD>splay-tree implementation of finite sets<TD>L 
 
+<TR><TD><A HREF="Splaytree.html">Splaytree</A>
+<TD>support for splay-trees<TD>&nbsp;
+
 <TR><TD><A HREF="String.html">String</A>
 <TD>string manipulation<TD>SDFNO
 
@@ -307,11 +296,8 @@ file</A>.
 <TR><TD><A HREF="Vector.html">Vector</A>
 <TD>immutable constant-time-access vectors<TD>SDFNO
 
-<TR><TD><A HREF="VectorSlice.html">VectorSlice</A>
-<TD>immutable sub-vectors<TD>SF
-
 <TR><TD><A HREF="Weak.html">Weak</A>
-<TD>arrays of weak pointers<TD>&nbsp;
+<TD>arrays of weak pointers<TD>
 
 <TR><TD><A HREF="Word.html">Word</A>
 <TD>words (31-bit unsigned integers)<TD>SF
@@ -322,14 +308,8 @@ file</A>.
 <TR><TD><A HREF="Word8Array.html">Word8Array</A>
 <TD>arrays of bytes<TD>SF
 
-<TR><TD><A HREF="Word8ArraySlice.html">Word8ArraySlice</A>
-<TD>sub-arrays of byte arrays<TD>SF
-
 <TR><TD><A HREF="Word8Vector.html">Word8Vector</A>
 <TD>vectors of bytes<TD>SF
-
-<TR><TD><A HREF="Word8VectorSlice.html">Word8VectorSlice</A>
-<TD>sub-vectors of byte vectors<TD>SF
 </TABLE>
 
 <P>The compatibility field is interpreted as follows:
@@ -364,7 +344,7 @@ instance, to get help on the <CODE>toString</CODE> functions, type
 </PRE>
 
 <P><hr><EM><A HREF="http://www.dina.kvl.dk/~sestoft/mosml.html">
-Moscow ML</A> 2.00.1</EM>,
+Moscow ML</A> 2.00</EM>,
 <a href="http://www.dina.kvl.dk/~sestoft/">Peter Sestoft</a>
 (<a href="mailto:sestoft@dina.kvl.dk">sestoft@dina.kvl.dk</a>)
-2000-10-26</body></html>
+2000-06-29</body></html>

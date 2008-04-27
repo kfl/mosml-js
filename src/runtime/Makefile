@@ -1,7 +1,9 @@
 # Makefile for the Moscow ML 2.00 version of the Caml Light runtime system
 
 OPTS=-fno-defer-pop -fomit-frame-pointer -DTHREADED
-BASECFLAGS= -Dunix -O2 $(OPTS)
+BASECFLAGS= -Wall -Dunix -O2 $(OPTS)
+
+BASELIBS=-lm
 
 include ../Makefile.inc
 
@@ -79,8 +81,7 @@ jumptbl.h : instruct.h
 .SUFFIXES: .d.o
 
 .c.d.o:
-	sh -c 'if  [ ! -d .debugobj ] ; then mkdir .debugobj; fi'
-	cd .debugobj; $(CC) -Dunix -c -g -I.. -I.. -DDEBUG $(OPTS) ../$<
+	cd .debugobj; $(CC) -c -g -I.. -I.. -DDEBUG $(OPTS) ../$<
 	mv .debugobj/$*.o $*.d.o
 
 depend : prims.c opnames.h jumptbl.h

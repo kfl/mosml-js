@@ -68,19 +68,7 @@ static int sml_equal_aux(value v1, value v2)
   if (Tag_val(v1) != Tag_val(v2)) return 0;
   switch(Tag_val(v1)) {
   case String_tag:
-    { // Faster string comparison 2002-12-03
-      register int len = string_length(v1);
-      register unsigned char * p1, * p2;
-      if (len != string_length(v2))
-	return 0;
-      for (p1 = (unsigned char *) String_val(v1),
-	   p2 = (unsigned char *) String_val(v2);
-	   len > 0;
-	   len--, p1++, p2++)
-	if (*p1 != *p2)
-	  return 0;
-      return 1;
-    }
+    return (compare_strings(v1, v2) == Val_long(0));
   case Double_tag:
     return (Double_val(v1) == Double_val(v2));
   case Reference_tag:  /* Different reference cells are not equal! */
@@ -114,13 +102,7 @@ value sml_not_equal(value v1, value v2) /* ML */
 
 value sml_system(value cmd)        /* ML */
 {
-  value res;
-  errno = 0;
-  res = system(String_val(cmd));
-  if (errno == ENOENT)
-    return -1;
-  else
-    return Val_int(res);
+  return Val_int(system(String_val(cmd)));
 }
 
 value sml_abs_int(value x)          /* ML */
@@ -416,6 +398,7 @@ value sml_ord(value s)          /* ML */
 
 value sml_float_of_string(value s)        /* ML */
 {
+
   char buff[64];
   mlsize_t len;
   int i, e_len;
@@ -630,6 +613,10 @@ value sml_makestring_of_string(value arg)      /* ML */
 #pragma mpwc_newline off
 #endif
 
+/* The following must agree with timebase in mosmllib/Time.sml: */
+
+#define TIMEBASE (-1073741824)
+
 /* There is another problem on the Mac: with a time base of 1904,
    most times are simply out of range of mosml integers. So, I added
    the macros below to compensate. 07Sep95 e
@@ -641,8 +628,6 @@ value sml_makestring_of_string(value arg)      /* ML */
 #define SMLtoSYStime
 
 #endif
-
-/* Return time as (double) number of usec since the epoch */
 
 value sml_getrealtime (value v) /* ML */
 {
@@ -663,12 +648,19 @@ value sml_getrealtime (value v) /* ML */
   */
 
   ftime(&t);
-  return copy_double(t.time*1000000.0 + t.millitm*1000.0);
+  res = alloc (2, 0);
+  Field (res, 0) = Val_long (t.time + TIMEBASE);
+  Field (res, 1) = Val_long (((long) t.millitm) * 1000);
+  return res;
 #else
+  value res;
   struct timeval tp;
 
   gettimeofday(&tp, NULL);
-  return copy_double((SYStoSMLtime(tp.tv_sec))*1000000.0 + (double)tp.tv_usec);
+  res = alloc (2, 0);
+  Field (res, 0) = Val_long (SYStoSMLtime(tp.tv_sec)+TIMEBASE);
+  Field (res, 1) = Val_long (tp.tv_usec);
+  return res;
 #endif
 }
 
@@ -981,21 +973,11 @@ value sml_access(value path, value permarg)          /* ML */
 
 value sml_tmpnam(value v)          /* ML */
 { char *res;
-#ifdef WIN32
-  value value_res;
- 
-  res = _tempnam(NULL, "mosml");
-  if (res == NULL)
-    failwith("tmpnam");
-  value_res = copy_string(res);
-  free(res);
-  return value_res;
-#else
+
   res = tmpnam(NULL);
   if (res == NULL) 
     failwith("tmpnam");  
   return copy_string(res);
-#endif
 }
 
 value sml_errormsg(value err)   /* ML */
@@ -1547,68 +1529,32 @@ char* exnmessage_aux(value exn)
   value argval = Field(exn, 1);
   if (strref == Field(global_data, SYS__EXN_SYSERR)) {
     value msgval = Field(argval, 0);
-#if defined(__CYGWIN__) || defined(hpux)
-    sprintf(buf, "%s: %s",
+    snprintf(buf, BUFSIZE, "%s: %s", 
 	     String_val(strval), String_val(msgval));
-#elif defined(WIN32)
-    _snprintf(buf, BUFSIZE, "%s: %s",
-	     String_val(strval), String_val(msgval));
-#else
-    snprintf(buf, BUFSIZE, "%s: %s",
-	     String_val(strval), String_val(msgval));
-#endif
     return buf;
   } else if (strref == Field(global_data, SYS__EXN_IO)) {
     value causeval = Field(argval, 0);
     value fcnval   = Field(argval, 1);
     value nameval  = Field(argval, 2);
     char* causetxt = exnmessage_aux(causeval);
-#if defined(__CYGWIN__) || defined(hpux)
-    sprintf(buf, "%s: %s failed on `%s'; %s", 
-	     String_val(strval), String_val(fcnval), 
-	     String_val(nameval), causetxt);
-#elif defined(WIN32)
-    _snprintf(buf, BUFSIZE, "%s: %s failed on `%s'; %s", 
-	     String_val(strval), String_val(fcnval), 
-	     String_val(nameval), causetxt);
-#else
     snprintf(buf, BUFSIZE, "%s: %s failed on `%s'; %s", 
 	     String_val(strval), String_val(fcnval), 
 	     String_val(nameval), causetxt);
-#endif
     free(causetxt);
     return buf;
   } else if (Is_block(argval)) {
     if (Tag_val(argval) == String_tag) { 
-#if defined(__CYGWIN__) || defined(hpux)
-      sprintf(buf, "%s: %s", String_val(strval), String_val(argval));
-#elif defined(WIN32)
-      _snprintf(buf, BUFSIZE, "%s: %s", String_val(strval), String_val(argval));
-#else
       snprintf(buf, BUFSIZE, "%s: %s", String_val(strval), String_val(argval));
-#endif
       return buf;
     } else if (Tag_val(argval) == Double_tag){
       char doubletxt[64];
       string_of_float_aux(doubletxt, Double_val(argval));
-#if defined(__CYGWIN__) || defined(hpux)
-      sprintf(buf, "%s: %s", String_val(strval), doubletxt);
-#elif defined(WIN32)
-      _snprintf(buf, BUFSIZE, "%s: %s", String_val(strval), doubletxt);
-#else
       snprintf(buf, BUFSIZE, "%s: %s", String_val(strval), doubletxt);
-#endif
       return buf;
     }
   }
   /* If unknown exception, copy the name and return it */
-#if defined(__CYGWIN__)
-  sprintf(buf, "%s", String_val(strval));
-#elif defined(WIN32)
-  _snprintf(buf, BUFSIZE, "%s", String_val(strval));
-#else
-  snprintf(buf, BUFSIZE, "%s", String_val(strval));
-#endif
+  snprintf(buf, BUFSIZE, "%s", String_val(strval));  
   return buf;
 #undef BUFSIZE 
 }
@@ -1622,26 +1568,4 @@ value sml_exnmessage(value exn)	/* ML */
   value res = copy_string(buf);
   free(buf);
   return res;
-}
-
-/* Sleep for the number of usec indicated the Double val vtime */
-
-value sml_sleep(value vtime)	/* ML */
-{
-  double time = Double_val(vtime);
-#ifdef WIN32
-/* cvr: is this correct for win32? */
-  unsigned long msec = (long)(time/1000.0);
-  if (time > 0) {
-    Sleep(msec);
-  }
-#else
-  unsigned long sec = (long)(time/1000000.0);
-  unsigned long usec = (long)(time - 1000000.0 * sec);
-  if (time > 0) {
-    sleep(sec);
-    usleep(usec);
-  } 
-#endif       
-  return Val_unit;
 }

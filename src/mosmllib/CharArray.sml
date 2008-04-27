@@ -14,20 +14,14 @@ in
     val length   : array -> int                 = magic Word8Array.length
     val sub      : array * int -> elem          = magic Word8Array.sub
     val update   : array * int * elem -> unit   = magic Word8Array.update
-    val vector   : array -> vector		= magic Word8Array.vector
-    val copy     : {src: array,  dst: array, di: int} -> unit 
-						= magic Word8Array.copy
-    val copyVec  : {src: vector, dst: array, di: int} -> unit 
-						= magic Word8Array.copyVec
+    val extract  : array * int * int option -> vector  
+						= magic Word8Array.extract
+    val copy     : {src: array, si: int, len : int option, 
+		    dst: array, di: int} -> unit = magic Word8Array.copy
+    val copyVec  : {src: vector, si: int, len: int option, 
+		    dst: array, di: int} -> unit = magic Word8Array.copyVec
     val app      : (elem -> unit) -> array -> unit
 						= magic Word8Array.app
-
-    val find     : (elem -> bool) -> array -> elem option
-						= magic Word8Array.find
-    val exists   : (elem -> bool) -> array -> bool
-						= magic Word8Array.exists
-    val all      : (elem -> bool) -> array -> bool
-						= magic Word8Array.all
 
     fun foldl (f : elem * 'b -> 'b) (e : 'b) (a : array) : 'b
 	= Word8Array.foldl (magic f) e (magic a)
@@ -38,22 +32,35 @@ in
     fun modify (f : elem -> elem) (a : array) : unit
 	= Word8Array.modify (magic f) (magic a)
 
-    val findi : (int * elem -> bool) -> array -> (int * elem) option
-	                                        = magic Word8Array.findi
-
-    fun appi (f : int * elem -> unit) (a : array) : unit
+    fun appi (f : int * elem -> unit) (a : array*int*int option) : unit
 	= Word8Array.appi (magic f) (magic a)
 
-    fun foldli (f : int * elem * 'b -> 'b) (e : 'b) (a : array) : 'b
+    fun foldli (f : int * elem * 'b -> 'b) (e : 'b) 
+               (a : array*int*int option) : 'b
 	= Word8Array.foldli (magic f) e (magic a)
 
-    fun foldri (f : int * elem * 'b -> 'b) (e : 'b) (a : array) : 'b 
+    fun foldri (f : int * elem * 'b -> 'b) (e : 'b) 
+	       (a : array*int*int option) : 'b 
 	= Word8Array.foldri (magic f) e (magic a)
 
-    fun modifyi (f : int * elem -> elem) (a : array) : unit
+    fun modifyi (f : int * elem -> elem) (a : array*int*int option) : unit
 	= Word8Array.modifyi (magic f) (magic a)
 
-    val collate  : (elem * elem -> order) -> array * array -> order
-						= magic Word8Array.collate
+(*
+    val foldl    : (elem * 'b -> 'b) -> 'b -> array -> 'b
+						= magic Word8Array.foldl
+    val foldr    : (elem * 'b -> 'b) -> 'b -> array -> 'b
+						= magic Word8Array.foldr
+    val modify   : (elem -> elem) -> array -> unit
+						= magic Word8Array.modify
+    val appi     : (int * elem -> unit) -> array*int*int option -> unit
+						= magic Word8Array.appi
+    val foldli   : (int * elem * 'b -> 'b) -> 'b -> array*int*int option -> 'b
+						= magic Word8Array.foldli
+    val foldri   : (int * elem * 'b -> 'b) -> 'b -> array*int*int option -> 'b
+						= magic Word8Array.foldri
+    val modifyi  : (int * elem -> elem) -> array*int*int option -> unit
+						= magic Word8Array.modifyi
+*)
 end
 

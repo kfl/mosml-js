@@ -1,4 +1,4 @@
-% manual.tex v. 2.00.5 Copyright (C) Peter Sestoft 1994, 2000-09-22
+% manual.tex v. 2.00.0 Copyright (C) Peter Sestoft 1994, 2000-06-28
 %
 % You may edit for lay-out, or leave out irrelevant sections (if
 % such omissions are marked somehow), but you may not redistribute the
@@ -9,7 +9,6 @@
 \usepackage{isolatin1,mosml,pslatex}
 \usepackage{geometry}
 \usepackage[T1]{fontenc}
-\nonstopmode
 
 % True if running pdflatex
 \newif\ifpdf
@@ -56,7 +55,7 @@ Copenhagen, Denmark
 
 \noindent 
 Moscow ML implements Standard ML (SML), as defined in the 1997 {\em
-  Definition of Standard ML\/}, including the SML Modules language
+  Definition of Standard ML\/}, including the SML Modules languages
 and some extensions.  Moreover, Moscow ML supports most required parts
 of the SML Basis Library.  It supports separate compilation and the
 generation of stand-alone executables.
@@ -640,7 +639,7 @@ compilation units; see Section~\ref{sec-compilation-units}.
   listed in $opnunits$ are added to the compilation context in
   which the specifications in U.sig are compiled.
   
-  Evaluating \texttt{compileToplevel $opnunits$ "{\rm U.sml}"
+  Evaluating \texttt{compileStructure $opnunits$ "{\rm U.sml}"
     } will elaborate and compile the declarations in file U.sig in
   toplevel mode, producing a bytecode file U.uo.  The contents of the
   units listed in $opnunits$ are added to the compilation
@@ -781,6 +780,14 @@ compilation units; see Section~\ref{sec-compilation-units}.
     quotation} is {\tt true}, the backquote character is illegal in
   symbolic identifiers, and a quotation {\tt `a b c`} will be
   evaluated to an object of type {\tt 'a frag list}.
+
+\item[{\tt system :\ string -> int}]\mbox{ }
+
+  Evaluating {\tt system "$com$"} causes the command $com$ to be
+  executed by the operating system.  If a non-zero integer is
+  returned, this must indicate that the operating system has failed to
+  execute the command.  Under MS DOS, the integer returned always
+  equals 0.
 
 \item[{\tt use :\ string -> unit}]\mbox{ }
 
@@ -1010,7 +1017,7 @@ Extension & Contents\\\hline
 \end{center}
 
 \noindent 
-Compiled unit implementations can be linked together using {\tt mosmlc
+Compiled unit implementations can be linked together using {\tt mosml
   -o mosmlout A.uo \ldots} to produce a linked executable bytecode
 file {\tt mosmlout}.  The linker will automatically link in any
 required bytecode files into {\tt mosmlout}.  See
@@ -1607,7 +1614,7 @@ that directory.
   (see the example makefile in \texttt{mosml/examples/units/Makefile}):
 
 \begin{program}
-UNITS= -structure Expr Reduce -toplevel Evaluate Test
+UNITS=-structure Expr Reduce -toplevel Evaluate Test
 \end{program}
 
 \item\label{one} Edit the Makefile so that the names of the compiled
@@ -1657,7 +1664,7 @@ mosmldep \$(UNITS)
 their compilation mode):
 
 \begin{program}
-UNITS= -structure Expr Reduce -toplevel Evaluate Test
+UNITS= -structure Expr Evaluate -toplevel Reduce Test
 \end{program}
 
 \noindent 
@@ -3532,8 +3539,7 @@ copyrght/copyrght.cl.\\[2ex]
   USA.
 \item Feedback, contributions, and useful suggestions, in particular
   from Ken Friis Larsen, but also from Jonas Barklund, Mike Gordon,
-  Michael Norrish, Konrad Slind, Jakob Lichtenberg, Hans Molin, and 
-  numerous other people.
+  Michael Norrish, Konrad Slind, and numerous other people.
 \end{itemize}
 \end{description}
 
@@ -3596,8 +3602,7 @@ Definition.
 \item Michael R. Hansen and Hans Rischel, \emph{Introduction to
     Programming using SML}, Addison-Wesley 1999, ISBN 0-201-39820-6.
 \item Greg Michaelson, {\em Elementary Standard ML\/}, UCL Press 1995,
-  ISBN 1-85728-398-8. At
-\url{ftp://ftp.macs.hw.ac.uk/pub/funcprog/gjm.book95.ps.Z}
+  ISBN 1-85728-398-8.
 \item Colin Myers, Chris Clack, and Ellen Poon, {\em Programming with
     Standard ML\/}, Prentice Hall 1993, ISBN 0-13-722075-8.
 \item Lawrence C. Paulson, {\em ML for the Working Programmer\/},

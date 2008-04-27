@@ -1,5 +1,5 @@
-(* test/word8vector.sml -- some test cases for Word8Vector 
-   PS 1994-12-10, 1995-06-14, 2000-10-24 *)
+(* test/vector.sml -- some test cases for Vector 
+   PS 1994-12-10, 1995-06-14 *)
 
 use "auxil.sml";
 
@@ -40,9 +40,27 @@ val test7 = check'(fn _ => length e = 203);
 
 val test8 = check'(fn _ => length (concat []) = 0);
 
-val f = Word8VectorSlice.vector(Word8VectorSlice.slice(e, 100, SOME 3));
+val f = extract (e, 100, SOME 3);
 
 val test9 = check'(fn _ => f = b);
+
+val test9a = check'(fn _ => e = extract(e, 0, SOME (length e)) 
+		    andalso e = extract(e, 0, NONE));
+val test9b = check'(fn _ => fromList [] = extract(e, 100, SOME 0));
+val test9c = (extract(e, ~1, SOME (length e))  seq "WRONG") 
+             handle Subscript => "OK" | _ => "WRONG"
+val test9d = (extract(e, length e + 1, SOME 0)  seq "WRONG") 
+             handle Subscript => "OK" | _ => "WRONG"
+val test9e = (extract(e, 0, SOME (length e+1)) seq "WRONG") 
+             handle Subscript => "OK" | _ => "WRONG"
+val test9f = (extract(e, 20, SOME ~1)        seq "WRONG") 
+             handle Subscript => "OK" | _ => "WRONG"
+val test9g = (extract(e, ~1, NONE)  seq "WRONG") 
+             handle Subscript => "OK" | _ => "WRONG"
+val test9h = (extract(e, length e + 1, NONE)  seq "WRONG") 
+             handle Subscript => "OK" | _ => "WRONG"
+val test9i = check'(fn _ => fromList [] = extract(e, length e, SOME 0)
+		    andalso fromList [] = extract(e, length e, NONE));
 
 fun chkiter iter f vec reslast =
     check'(fn _ =>
@@ -55,97 +73,31 @@ fun chkiteri iter f vec reslast =
 	   let val last = ref ~1
 	       val res = iter (fn (i, x) => (last := i; f x)) vec
 	   in (res, !last) = reslast end)
-fun chkfold fold f start vec reslast =
-    check'(fn _ =>
-	   let val last = ref 0w255
-	       val res = fold (fn (x, r) => (last := x; f(x, r))) start vec
-	   in (res, !last) = reslast end)
-fun chkfoldi fold f start vec reslast =
-    check'(fn _ =>
-	   let val last = ref ~1
-	       val res = fold (fn (i, x, r) => (last := i; f(x, r))) start vec
-	   in (res, !last) = reslast end)
 
 val test10a = 
     chkiter map (fn x => 0w2*x) b (fromList [0w88,0w110,0w132], 0w66)
-val test10b = 
-    chkiter app (fn x => ignore(0w2*x)) b ((), 0w66)
-val test10c = 
-    chkiter find (fn x => false) b (NONE, 0w66)
-val test10d = 
-    chkiter exists (fn x => false) b (false, 0w66)
-val test10e = 
-    chkiter all (fn x => true) b (true, 0w66)
-val test10f = 
-    chkfold foldl (op +) 0w0 b (0w165, 0w66)
-val test10g = 
-    chkfold foldr (op +) 0w0 b (0w165, 0w44)
 
 val test11a = 
-    chkiteri mapi (fn x => 0w2*x) b (fromList [0w88,0w110,0w132], 2)
+    chkiteri mapi (fn x => 0w2*x) (b, 0, NONE) (fromList [0w88,0w110,0w132], 2)
 val test11b = 
-    chkiteri appi (fn x => ignore(0w2*x)) b ((), 2)
+    chkiteri mapi (fn x => 0w2*x) (b, 1, NONE) (fromList [0w110,0w132], 2)
 val test11c = 
-    chkiteri findi (fn x => false) b (NONE, 2)
+    chkiteri mapi (fn x => 0w2*x) (b, 1, SOME 0) (fromList [], ~1)
 val test11d = 
-    chkfoldi foldli (op +) 0w0 b (0w165, 2)
+    chkiteri mapi (fn x => 0w2*x) (b, 1, SOME 1) (fromList [0w110], 1)
 val test11e = 
-    chkfoldi foldri (op +) 0w0 b (0w165, 0)
+    chkiteri mapi (fn x => 0w2*x) (b, 3, NONE) (fromList [], ~1)
 
-val test12a = 
-    check'(fn _ => 
-	   a = update(a, 0, 0w0) 
-	   andalso a = update(a, 6, 0w6)
-	   andalso fromList (List.map i2w [78,1,2,3,4,5,6]) 
-	           = update(a, 0, 0w78)
-	   andalso fromList (List.map i2w [0,1,2,33,4,5,6]) 
-	           = update(a, 3, 0w33))
-val test12b =
-    (update(b, ~1, 0w17) seq "WRONG") 
+val test11f =
+    (mapi #2 (b, 0, SOME 4) seq "WRONG") 
     handle Subscript => "OK" | _ => "WRONG";
-val test12c =
-    (update(b, 7, 0w17) seq "WRONG") 
+val test11g =
+    (mapi #2 (b, 3, SOME 1) seq "WRONG") 
     handle Subscript => "OK" | _ => "WRONG";
-val test12d =
-    (update(fromList [], 0, 0w17) seq "WRONG") 
+val test11h =
+    (mapi #2 (b, 4, SOME 0) seq "WRONG") 
     handle Subscript => "OK" | _ => "WRONG";
-
-val test13 = 
-    check'(fn _ =>
-	   let fun invcompare (c1, c2) = Word8.compare(c2, c1)
-	       fun coll s1 s2 = 
-		   collate invcompare (Byte.stringToBytes s1,
-				       Byte.stringToBytes s2)
-	   in 
-	       coll "" "" = EQUAL
-	       andalso coll "" " " = LESS
-	       andalso coll " " "" = GREATER
-	       andalso coll "ABCD" "ABCD" = EQUAL
-	       andalso coll "ABCD" "ABCD " = LESS
-	       andalso coll "ABCD " "ABCD" = GREATER
-	       andalso coll "B" "ABCD" = LESS
-	       andalso coll "ABCD" "B" = GREATER
-	       andalso coll "CCCB" "CCCABCD" = LESS
-	       andalso coll "CCCABCD" "CCCB" = GREATER
-	       andalso coll "CCCB" "CCCA" = LESS
-	       andalso coll "CCCA" "CCCB" = GREATER
-	   end)
-
-val test14 = 
-    check'(fn _ => 
-	   NONE = find (fn i => i > 0w7) a
-	   andalso SOME 0w5 = find (fn i => i > 0w4) a
-	   andalso NONE = find (fn _ => true) (fromList []));
-
-val test15 = 
-    check'(fn _ => 
-	   not (exists (fn i => i > 0w7) a)
-	   andalso exists (fn i => i > 0w4) a
-	   andalso not (exists (fn _ => true) (fromList [])));
-
-val test16 = 
-    check'(fn _ => 
-	   not (all (fn i => i < 0w6) a)
-	   andalso all (fn i => i < 0w7) a
-	   andalso all (fn _ => false) (fromList []));
+val test11i =
+    (mapi #2 (b, 4, NONE) seq "WRONG") 
+    handle Subscript => "OK" | _ => "WRONG";
 end;

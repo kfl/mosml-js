@@ -89,8 +89,6 @@ end
 fun updateCurrentState ((iBas, (Env as EXISTS(T,(ME,FE,GE,VE, TE)))), RE) =
 (
   catch_interrupt false;
-  incrBindingLevel(); 
-  refreshTyNameSet PARAMETERts T;
   updateCurrentInfixBasis iBas;
   updateCurrentStaticT T;
   updateCurrentStaticME ME;
@@ -111,11 +109,10 @@ fun execLamPhrase state (RE, tlams) =
   app
     (fn (is_pure, lam) =>
       ( (* msgIBlock 0; Pr_lam.printLam lam; msgEOL(); msgEBlock();   *)
-        (* msgIBlock 0; Pr_lam.printLam lam; msgEOL(); msgEBlock(); 
-	   msgFlush(); *)
+        (* msgIBlock 0; Pr_lam.printLam lam; msgEOL(); msgEBlock();msgFlush(); *) (* cvr: TODO remove *)
        ignore (loadZamPhrase
          let val zam = compileLambda is_pure lam in
-	       (* printZamPhrase zam; msgFlush(); *)
+             (* printZamPhrase zam; msgFlush(); *)
 	       zam
          end)
       ))
