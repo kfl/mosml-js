@@ -1,6 +1,6 @@
 # Unix Makefile for Moscow ML
 
-# To build the Moscow ML system on a new machine for the first time, 
+# To build the Moscow ML system on a new machine for the first time,
 #	(1) edit MOSMLHOME etc. in file Makefile.inc
 #	(2) execute `make world'
 
@@ -21,7 +21,7 @@ world:
 	cp runtime/camlrunm$(EXE) .
 	cd mosmlyac; make all
 	cd mosmllib; make all
-	cd compiler; make all
+	cd compiler.js; make all
 	cd toolssrc; make all
 	cd lex; make all
 	cd launch; make all
@@ -31,7 +31,7 @@ uptodate:
 	cp runtime/camlrunm$(EXE) .
 	cd mosmlyac; make all
 	cd mosmllib; make all
-	cd compiler; make all
+	cd compiler.js; make all
 	cd toolssrc; make all
 	cd lex; make all
 	cd launch; make all
@@ -39,7 +39,7 @@ uptodate:
 # Recompile all Mosml code from scratch
 again:
 	cd mosmllib; make clean all
-	cd compiler; make clean all
+	cd compiler.js; make clean all
 	cd toolssrc; make clean all
 	cd lex; make clean all
 
@@ -55,7 +55,7 @@ install:
 	cd launch; make all install
 	cd mosmlyac; make install
 	cd mosmllib; make install
-	cd compiler; make install
+	cd compiler.js; make install
 	cd toolssrc; make install
 	cd lex; make install
 	(cd $(INCDIR)/..; rm -fr config; ln -s include config)
@@ -68,12 +68,12 @@ clean:
 	cd launch; make clean
 	cd mosmlyac; make clean
 	cd mosmllib; make clean
-	cd compiler; make clean
+	cd compiler.js; make clean
 	cd toolssrc; make clean
 	cd lex; make clean
 	cd test; make clean
 	cd mosmllib/test; make clean
-	cd ../examples; make clean	
+	cd ../examples; make clean
 	cd dynlibs; make clean
 	rm -f camlrunm$(EXE)
 	cd doc; make clean
@@ -86,5 +86,5 @@ dynlibs:
 depend:
 	cd mosmllib; make depend
 	cd mosmlyac; make all
-	cd compiler; make depend
+	cd compiler.js; make depend
 	cd lex; make depend
