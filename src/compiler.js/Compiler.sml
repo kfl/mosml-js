@@ -408,15 +408,22 @@ fun updateCurrentCompState ((iBas, ExEnv as EXISTS(T,(ME,FE,GE,VE, TE))), RE) =
   else ()
 );
 
+val printLambda = ref true
+val printJavascript = ref false
+val printZam = ref false
+
 fun compLamPhrase os state (RE, lams) =
 (
   app
-    (fn (is_pure, lam) =>
-       (* ( msgIBlock 0; Pr_lam.printLam lam; msgEOL(); msgEBlock(); *)
-       ( msgIBlock 0; Pr_JS.printJSLam lam; msgString ";"; msgEOL(); msgEBlock();
+    (fn (is_pure, lam) => (
+       if !printLambda then (msgIBlock 0; Pr_lam.printLam lam; msgEOL(); msgEBlock())
+       else ();
+       if !printJavascript then (msgIBlock 0; Pr_JS.printJSLam lam; msgString ";"; msgEOL(); msgEBlock())
+       else ();
        emit_phrase os
          let val zam = compileLambda is_pure lam in
-           (* printZamPhrase zam; msgFlush(); *)
+           if !printZam then (printZamPhrase zam; msgFlush())
+           else ();
            zam
          end))
     lams;
