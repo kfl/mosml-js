@@ -1,21 +1,30 @@
 open JSInstruct Const Buffcode;
 
 fun outConst (JSNUMscon i) = out i
-  | outConst (JSSTRscon s) = out "\""^s^"\"";
-
+  | outConst (JSSTRscon s) = out "\""^s^"\""
+;
 fun outList [] = ()
-  | outList s :: [] = outConst s
-  | outList s :: ss = outConst s; out ","; outList ss
-
+  | outList (JSLISTsc s) :: [] = (out "[";outList s;out "]")
+  | outList (JSATOMsc s) :: [] = outConst s
+  | outList (JSLISTsc s) :: ss = (out "[";outList s;out "]"); out ","; outList ss
+  | outList (JSATOMsc s) :: ss = outConst s; out ","; outList ss
+;
 
 (*Emit the given phrase in abstract js language defined in JSInstruct.sml.*)
-fun emit jsphrases =
-    case jsphrases of
-      [] => ()
-    | JSAdd(a,b) :: c => (emit [a]; out "+"; emit [b])
-    | JSConst(JSATOMsc k) :: c => (outConst k; emit c)
-    | JSConst(JSLISTsc l) :: c => (out "[";outList l;out "]";  emit c)
-    | JSGetVar(_,qual):: c => (out qual; emit c)
-    | JSSetVar((_,qual), js) :: c => (out qual^"="; emit [js]; out "; "; emit c)
-    | _ :: c => (out " Error! "; emit c)
+fun emit jsinstr =
+  case jsinstr of
+    JSAdd(a,b) => (emit a; out "+"; emit b)
+  | JSConst(JSATOMsc k) => outConst k
+  | JSConst(JSLISTsc l) => (out "[";outList l;out "]")
+  | JSGetVar(_,qual) => out qual
+  | JSSetVar((_,qual), js) => (out qual^"="; emit [js]; out "; ")
+  | _ => out " Error! "
+    
+  and emitList jsinstrlist = ()
 ;
+
+fun emitPhrase os (ajs : JSInstruction) =
+(
+  emit ajs;
+  buff_output os (!out_buffer) 0 (!out_position);
+);
