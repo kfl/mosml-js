@@ -10,7 +10,7 @@ datatype JSSCon =
 
 datatype JSConstant =
     JSATOMsc of JSSCon
-  | JSLISTsc of JSSCon List
+  | JSLISTsc of JSConstant List
 ;
 
 datatype JSInstruction =
@@ -19,5 +19,3 @@ datatype JSInstruction =
   | JSConst of JSConstant
   | JSAdd of JSInstruction * JSInstruction
 ;
-
-type JSPhrase = JSInstruction list;

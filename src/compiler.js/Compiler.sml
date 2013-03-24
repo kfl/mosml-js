@@ -2,7 +2,7 @@
 
 open List Obj BasicIO Nonstdio Fnlib Mixture Const Globals Location Units;
 open Types Smlperv Asynt Parser Ovlres Infixres Elab Sigmtch;
-open Tr_env Front Back Pr_zam Emit_phr;
+open Tr_env Front Back JSEmit;
 
 (* Lexer of stream *)
 
@@ -408,9 +408,8 @@ fun updateCurrentCompState ((iBas, ExEnv as EXISTS(T,(ME,FE,GE,VE, TE))), RE) =
   else ()
 );
 
-val printLambda = ref true
+val printLambda = ref false
 val printJavascript = ref false
-val printZam = ref false
 
 fun compLamPhrase os state (RE, lams) =
 (
@@ -420,12 +419,8 @@ fun compLamPhrase os state (RE, lams) =
        else ();
        if !printJavascript then (msgIBlock 0; Pr_JS.printJSLam lam; msgString ";"; msgEOL(); msgEBlock())
        else ();
-       emit_phrase os
-         let val zam = compileLambda is_pure lam in
-           if !printZam then (printZamPhrase zam; msgFlush())
-           else ();
-           zam
-         end))
+       emitPhrase os
+         let val ajs = compileLambda lam in ajs end))
     lams;
     updateCurrentCompState (state, RE)
 );
