@@ -10,8 +10,8 @@ datatype JSConstant =
 ;
 
 datatype JSInstruction =
-    JSGetVar of QualifiedIdent * int
-  | JSSetVar of QualifiedIdent * int * JSInstruction
+    JSGetVar of QualifiedIdent
+  | JSSetVar of QualifiedIdent * JSInstruction
   | JSConst of JSConstant
   | JSAdd of JSInstruction * JSInstruction
 ;
