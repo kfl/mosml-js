@@ -4,9 +4,13 @@
 
 open Config Const Prim;
 
+datatype JSSCon =
+    JSNUMscon of string
+  | JSSTRscon of string
+
 datatype JSConstant =
-    ATOMsc of SCon
-  | LISTsc of SCon List
+    JSATOMsc of JSSCon
+  | JSLISTsc of JSSCon List
 ;
 
 datatype JSInstruction =
