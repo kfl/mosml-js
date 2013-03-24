@@ -21,19 +21,13 @@ fun emit_phrase os (phr : ZamPhrase) =
   reloc_reset();
   init_out_code();
   Labels.reset_label_table();
-  if #kph_funcs phr = [] then
-    emit (#kph_inits phr)
-  else
-    (emit (#kph_inits phr);
-     emit [Kbranch 0];
-     emit (#kph_funcs phr);
-     emit [Klabel 0]);
+  
+  emit phr;
   buff_output os (!out_buffer) 0 (!out_position);
   compiled_phrase_index :=
     { cph_pos   = !abs_out_position,
       cph_len   = !out_position,
-      cph_reloc = get_reloc_info(),
-      cph_pure  = #kph_is_pure phr}
+      cph_reloc = get_reloc_info()}
         :: !compiled_phrase_index;
   abs_out_position := !abs_out_position + !out_position
 );
