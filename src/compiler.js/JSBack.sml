@@ -1,7 +1,7 @@
 
 (*  JSBack.sml : translation of lambda terms to lists of JS-instructions. *)
 
-open List Fnlib Mixture Const Lambda Prim Instruct;
+open Const Lambda Prim JSInstruct;
 
 
 (* The translator from lambda terms to lists of instructions.
