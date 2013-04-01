@@ -452,10 +452,9 @@ fun compileAndEmit context uname uident umode filename specSig_opt elab decs =
              (* if in STRmode and the optional sig is there
                 then we add the signature to the environment of the body *)
     val () = resetTypes();
-    val os = open_out_bin filename_uo
+    val os = openOut filename_uo
   in
-    ( start_emit_phrase os;
-      app (compileImplPhrase os elab) decs;
+    ( app (compileImplPhrase os elab) decs;
       (case umode of
 	 STRmode =>
 	     (Hasht.clear (iBasOfSig(!currentSig));
@@ -481,7 +480,7 @@ fun compileAndEmit context uname uident umode filename specSig_opt elab decs =
                      (getOption (!uStamp)) (#uMentions (!currentSig))
                      os
                  end);
-          close_out os
+          closeOut os
         end
     )
     handle x => (close_out os; remove_file filename_uo;raise x)
