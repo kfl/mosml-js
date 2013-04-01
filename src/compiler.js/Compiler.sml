@@ -2,7 +2,7 @@
 
 open List Obj BasicIO Nonstdio Fnlib Mixture Const Globals Location Units;
 open Types Smlperv Asynt Parser Ovlres Infixres Elab Sigmtch;
-open Tr_env Front Back JSEmit;
+open Tr_env Front JSBack JSEmit;
 
 (* Lexer of stream *)
 
@@ -442,7 +442,7 @@ fun compileImplPhrase os elab dec =
 fun compileAndEmit context uname uident umode filename specSig_opt elab decs =
   let
     val filename_ui  = filename ^ ".ui"
-    val filename_uo  = filename ^ ".uo"
+    val filename_uo  = filename ^ ".js"
     (* val () = (msgIBlock 0;
                  msgString "[compiling file \""; msgString filename_sml;
                  msgString "\"]"; msgEOL(); msgEBlock()) *)

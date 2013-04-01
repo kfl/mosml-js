@@ -13,10 +13,11 @@ COMP_OBJS = \
     Lambda.uo Smlprim.uo Globals.uo Location.uo \
     Units.uo Types.uo Smlexc.uo Smlperv.uo Asynt.uo Asyntfn.uo \
     Parser.uo Lexer.uo Primdec.uo Infixst.uo Ovlres.uo \
-    Synchk.uo Infixres.uo Elab.uo Tr_env.uo Pr_lam.uo Pr_JS.uo \
+    Synchk.uo Infixres.uo Elab.uo Tr_env.uo Pr_lam.uo \
     Match.uo Front.uo Back.uo Pr_zam.uo \
     Opcodes.uo Prim_opc.uo Buffcode.uo Labels.uo Code_dec.uo Reloc.uo \
-    Emitcode.uo Emit_phr.uo Sigmtch.uo Compiler.uo
+    Emitcode.uo Emit_phr.uo Sigmtch.uo Compiler.uo \
+    Pr_JS.uo JSEmit.uo JSInstruct.uo JSBack.uo
 
 C_LIBOBJS= \
     List.uo Strbase.uo Char.uo String.uo BasicIO.uo TextIO.uo \
@@ -207,7 +208,6 @@ Pr_zam.uo: Asynt.uo Const.uo Fnlib.ui Config.uo Pr_lam.ui Instruct.uo \
     Mixture.ui
 Pr_lam.uo: Pr_lam.ui Asynt.uo Const.uo Prim.uo Mixture.ui Lambda.uo
 Pr_lam.ui: Prim.uo Lambda.uo
-Pr_JS.uo: Asynt.uo Const.uo Prim.uo Mixture.ui Lambda.uo
 Patch.uo: Code_dec.uo Symtable.ui
 Ovlres.uo: Ovlres.ui Asynt.uo Const.uo Fnlib.ui Prim.uo Types.ui Globals.uo \
     Smlprim.uo Location.ui Mixture.ui Units.ui
@@ -268,7 +268,7 @@ Elab.uo: Elab.ui Asynt.uo Primdec.uo Sort.ui Synchk.ui Const.uo Fnlib.ui \
 Elab.ui: Asynt.uo Globals.uo
 Const.uo: Fnlib.ui Config.uo Mixture.ui
 Compiler.uo: Compiler.ui Asynt.uo Front.ui Parser.ui Const.uo Back.ui \
-    Fnlib.ui Pr_zam.uo Elab.ui Emit_phr.uo Lexer.ui Config.uo Sigmtch.ui \
+    Fnlib.ui Pr_zam.uo Elab.ui JSEmit.uo Lexer.ui Config.uo Sigmtch.ui \
     Types.ui Ovlres.ui Globals.uo Smlperv.ui Tr_env.ui Location.ui \
     Mixture.ui Units.ui Infixres.ui Hasht.ui
 Compiler.ui: Asynt.uo Globals.uo Mixture.ui
@@ -284,3 +284,7 @@ Asyntfn.ui: Asynt.uo Const.uo Fnlib.ui Types.ui Globals.uo Location.ui \
 Arg.uo: Arg.ui Fnlib.ui Miscsys.ui
 Asynt.uo: Const.uo Fnlib.ui Types.ui Globals.uo Location.ui Mixture.ui \
     Lambda.uo
+JSEmit.uo: JSInstruct.uo Const.uo Buffcode.uo
+JSInstruct.uo: Const.uo Prim.uo
+JSBack.uo: Const.uo Lambda.uo Prim.uo JSInstruct.uo
+Pr_JS.uo: Asynt.uo Const.uo Prim.uo Mixture.ui Lambda.uo

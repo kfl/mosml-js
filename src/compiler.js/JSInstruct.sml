@@ -2,7 +2,7 @@
 
 (* 1996.07.05 -- e *)
 
-open Config Const Prim;
+open Const Prim;
 
 datatype JSSCon =
     JSNUMscon of string
