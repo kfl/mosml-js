@@ -2,7 +2,7 @@
 
 open List Obj BasicIO Nonstdio Fnlib Mixture Const Globals Location Units;
 open Types Smlperv Asynt Parser Ovlres Infixres Elab Sigmtch;
-open Tr_env Front JSBack JSEmit;
+open Tr_env Front Emit_phr JSEmit JSBack;
 
 (* Lexer of stream *)
 
@@ -420,7 +420,7 @@ fun compLamPhrase os state (RE, lams) =
        if !printJavascript then (msgIBlock 0; Pr_JS.printJSLam lam; msgString ";"; msgEOL(); msgEBlock())
        else ();
        emitPhrase os
-         let val ajs = compileLambda lam in ajs end))
+         let val ajs = compileJSLambda lam in ajs end))
     lams;
     updateCurrentCompState (state, RE)
 );

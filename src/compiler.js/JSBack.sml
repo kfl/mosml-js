@@ -23,7 +23,7 @@ fun compileSCon scon =
   | STRINGscon s => JSSTRscon s
 ;
 
-fun compileLambda exp =
+fun compileJSLambda exp =
   case exp of
     Lconst (ATOMsc scon) => compileSCon scon
   | Lprim (Pccal call, args) => compileCall call args

@@ -10,7 +10,7 @@ datatype JSSCon =
 
 datatype JSConstant =
     JSATOMsc of JSSCon
-  | JSLISTsc of JSConstant List
+  | JSLISTsc of JSConstant list
 ;
 
 datatype JSInstruction =
