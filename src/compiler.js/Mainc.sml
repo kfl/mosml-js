@@ -7,7 +7,7 @@ fun compileFile (context,s,mode) =
   let (* val s = normalizedFileName s *) in
     if Filename.check_suffix s ".sig" then
       let val filename = Filename.chop_suffix s ".sig" in
-        compileSignature context 
+        compileSignature context
           (normalizedUnitName (Filename.basename filename))
 	  mode
           filename
@@ -33,19 +33,19 @@ val initialFiles = ref ([] : (string list * string * Mode) list);
 fun anonymous s =
   let val s = normalizedFileName s in
     if Filename.check_suffix s ".sig" then
-      let val filename = Filename.chop_suffix s ".sig" 
+      let val filename = Filename.chop_suffix s ".sig"
       in
-	  (initialFiles := 
-	         (!initialFiles) @ 
+	  (initialFiles :=
+	         (!initialFiles) @
 		 [(!initialContext,s,!initialMode)];
 	   initialContext := (!initialContext) @ [filename])
       end
     else if Filename.check_suffix s ".sml" then
-      let val filename = Filename.chop_suffix s ".sml" 
+      let val filename = Filename.chop_suffix s ".sml"
       in
-	  (initialFiles := 
-	       (!initialFiles) @ 
-	       [(remove filename (!initialContext), 
+	  (initialFiles :=
+	       (!initialFiles) @
+	       [(remove filename (!initialContext),
 		 (* we remove filename to avoid a circular dependency on
 		    the .sig file, if any *)
 		 s,
@@ -53,12 +53,12 @@ fun anonymous s =
 	   initialContext := (!initialContext) @ [filename])
       end
     else if Filename.check_suffix s ".ui" then
-      let val filename = Filename.chop_suffix s ".ui" 
+      let val filename = Filename.chop_suffix s ".ui"
       in
 	   initialContext := (!initialContext) @ [filename]
       end (* cvr: this implies that the .ui file must be on the load path *)
     else
-      raise (Fail "unknown file name extension")
+      raise (Fail ("unknown file name extension: "^s))
   end
 ;
 
@@ -76,8 +76,8 @@ fun add_include d =
 
 fun perv_set set' =
     let val set = Fnlib.stringToLower set'
-    in 
-	if set = "none" then 
+    in
+	if set = "none" then
 	    (preloadedUnits := []; preopenedPreloadedUnits := [])
 	else
 	    (preloadedUnits          := lookup set preloadedUnitSets;
@@ -145,7 +145,7 @@ fun main () =
              ("-q",         Arg.Unit enable_quotation),
              ("-imptypes",  Arg.Unit (set_value_polymorphism false)),
              ("-valuepoly", Arg.Unit (set_value_polymorphism true)),
-             ("-msgstyle",  Arg.String set_msgstyle), 
+             ("-msgstyle",  Arg.String set_msgstyle),
              ("-m",         Arg.String set_msgstyle),
              ("-structure",  Arg.Unit str_mode),
              ("-toplevel",  Arg.Unit topdec_mode),
@@ -158,7 +158,7 @@ fun main () =
     load_path := !load_path @ [!path_library]
   else ();
   initPervasiveEnvironments();
-  resetTypes(); 
+  resetTypes();
   Miscsys.catch_interrupt true;
   if null (!initialFiles) then show_version() else ();
   app compileFile (!initialFiles);

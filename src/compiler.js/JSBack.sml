@@ -31,7 +31,7 @@ fun compileJSLambda exp =
     Lconst (ATOMsc scon) => JSConst (compileSCon scon)
   | Lprim (Pccall call, args) => compileCall call args
   | Lprim (Pget_global(uid,_), _) => JSGetVar uid
-  | Lprim (Pset_global(uid,_), arg) => JSSetVar (uid, compileJSLambda arg)
+  | Lprim (Pset_global(uid,_), [arg]) => JSSetVar (uid, compileJSLambda arg)
 
   and compileCall (name, arity) args =
     case (name, args) of

@@ -1,9 +1,9 @@
-open JSInstruct Const TextIO;
 local
+  open JSInstruct Const TextIO List;
   val outstream = ref stdOut;
 in
 
-  fun out (s : string) = 
+  fun out (s : string) =
     output (!outstream, s);
   ;
 
@@ -23,8 +23,8 @@ in
       JSAdd(a,b) => (emit a; out "+"; emit b)
     | JSConst(JSATOMsc k) => outConst k
     | JSConst(JSLISTsc l) => (out "[";outList l;out "]")
-    | JSGetVar qualid => out (#qual qualid)
-    | JSSetVar(qualid, js) => (out ((#qual qualid)^"="); emit js; out "; ")
+    | JSGetVar qualid => out (hd(#id qualid))
+    | JSSetVar(qualid, js) => (out ((hd(#id qualid))^"="); emit js)
     | _ => out " Error! "
 
     and emitList jsinstrlist = ()
@@ -34,6 +34,7 @@ in
   (
     outstream := os;
     emit ajs;
+    out ";\n";
     flushOut os
   );
 end;

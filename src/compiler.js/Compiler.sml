@@ -2,7 +2,8 @@
 
 open List Obj BasicIO Nonstdio Fnlib Mixture Const Globals Location Units;
 open Types Smlperv Asynt Parser Ovlres Infixres Elab Sigmtch;
-open Tr_env Front Emit_phr JSEmit JSBack;
+open Tr_env Front Emit_phr;
+open JSEmit JSBack;
 
 (* Lexer of stream *)
 
@@ -221,7 +222,7 @@ fun writeCompiledSignature filename_ui =
     end;
     let val is = open_in_bin filename_ui in
       let val sigImage = input(is, !sigLen)
-	  prim_val md5sum_ : string -> string = 1 "md5sum"
+    prim_val md5sum_ : string -> string = 1 "md5sum"
       in
         if size sigImage < !sigLen then raise Size else ();
         close_in is;
@@ -411,7 +412,7 @@ fun updateCurrentCompState ((iBas, ExEnv as EXISTS(T,(ME,FE,GE,VE, TE))), RE) =
 val printLambda = ref false
 val printJavascript = ref false
 
-fun compLamPhrase os state (RE, lams) =
+fun compLamPhrase jsos os state (RE, lams) =
 (
   app
     (fn (is_pure, lam) => (
@@ -419,30 +420,31 @@ fun compLamPhrase os state (RE, lams) =
        else ();
        if !printJavascript then (msgIBlock 0; Pr_JS.printJSLam lam; msgString ";"; msgEOL(); msgEBlock())
        else ();
-       emitPhrase os
-         let val ajs = compileJSLambda lam in ajs end))
+       emitPhrase jsos let val ajs = compileJSLambda lam in ajs end;
+       emit_phrase os let val zam = Back.compileLambda is_pure lam in zam end))
     lams;
     updateCurrentCompState (state, RE)
 );
 
-fun compResolvedDecPhrase os elab (iBas, dec) =
+fun compResolvedDecPhrase jsos os elab (iBas, dec) =
   let val ExEnv = elab dec in
     resolveOvlDec dec;
     commit_free_typevar_names (); (* cvr: will never be rolled-back *)
-    compLamPhrase os (iBas, ExEnv) (translateToplevelDec dec)
+    compLamPhrase jsos os (iBas, ExEnv) (translateToplevelDec dec)
   end
 ;
 
-fun compileImplPhrase os elab dec =
+fun compileImplPhrase jsos os elab dec =
   let val (iBas,resdec) = resolveToplevelDec dec in
-      compResolvedDecPhrase os elab (iBas,resdec)
+      compResolvedDecPhrase jsos os elab (iBas,resdec)
   end
 ;
 
 fun compileAndEmit context uname uident umode filename specSig_opt elab decs =
   let
     val filename_ui  = filename ^ ".ui"
-    val filename_uo  = filename ^ ".js"
+    val filename_uo  = filename ^ ".uo"
+    val filename_js  = filename ^ ".js"
     (* val () = (msgIBlock 0;
                  msgString "[compiling file \""; msgString filename_sml;
                  msgString "\"]"; msgEOL(); msgEBlock()) *)
@@ -452,13 +454,15 @@ fun compileAndEmit context uname uident umode filename specSig_opt elab decs =
              (* if in STRmode and the optional sig is there
                 then we add the signature to the environment of the body *)
     val () = resetTypes();
-    val os = openOut filename_uo
+    val os = open_out_bin filename_uo
+    val jsos = TextIO.openOut filename_js
   in
-    ( app (compileImplPhrase os elab) decs;
+    ( start_emit_phrase os;
+      app (compileImplPhrase jsos os elab) decs;
       (case umode of
-	 STRmode =>
-	     (Hasht.clear (iBasOfSig(!currentSig));
-	      Hasht.clear (sigEnvOfSig(!currentSig)))
+   STRmode =>
+       (Hasht.clear (iBasOfSig(!currentSig));
+        Hasht.clear (sigEnvOfSig(!currentSig)))
        | TOPDECmode => ());
       let val (excRenList, valRenList) = rectifySignature() in
           (case specSig_opt of
@@ -473,17 +477,18 @@ fun compileAndEmit context uname uident umode filename specSig_opt elab decs =
              | SOME specSig =>
                  let val {uVarEnv,uModEnv,uFunEnv,uStamp, ...} = specSig
                      val valRenList = matchSignature os valRenList (!currentSig) specSig;
-		 in
+                 in
                    end_emit_phrase
                      (filterExcRenList excRenList uVarEnv)
                      (filterValRenList valRenList uModEnv uFunEnv uVarEnv)
                      (getOption (!uStamp)) (#uMentions (!currentSig))
                      os
                  end);
-          closeOut os
+          close_out os;
+          TextIO.closeOut jsos
         end
     )
-    handle x => (close_out os; remove_file filename_uo;raise x)
+    handle x => (TextIO.closeOut jsos; close_out os; remove_file filename_uo;raise x)
   end;
 
 (* cvr: TODO
