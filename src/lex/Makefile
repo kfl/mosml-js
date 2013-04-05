@@ -1,6 +1,6 @@
 # Unix Makefile for the Moscow ML lexer generator
 
-INCLUDES=-I ../compiler
+INCLUDES=-I ../compiler.js
 COMPFLAGS=$(INCLUDES)
 LINKFLAGS=$(INCLUDES)
 

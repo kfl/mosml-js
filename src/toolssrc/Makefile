@@ -1,6 +1,6 @@
 # Unix Makefile for mosmldep
 
-INCLUDES=-I ../compiler
+INCLUDES=-I ../compiler.js
 COMPFLAGS=$(INCLUDES)
 LINKFLAGS=-g $(INCLUDES)
 

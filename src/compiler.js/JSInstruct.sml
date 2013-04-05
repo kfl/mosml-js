@@ -1,6 +1,4 @@
-(* The type of the instructions of the abstract machine *)
-
-(* 1996.07.05 -- e *)
+(* The description of the intermediate JS-instruction set. *)
 
 open Const Prim;
 
@@ -18,4 +16,6 @@ datatype JSInstruction =
   | JSSetVar of QualifiedIdent * JSInstruction
   | JSConst of JSConstant
   | JSAdd of JSInstruction * JSInstruction
+  | JSFun of QualifiedIdent * JSInstruction
+  | JSError of int (* Note: this is just for debugging purposes. *)
 ;

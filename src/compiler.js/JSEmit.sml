@@ -25,6 +25,7 @@ in
     | JSConst(JSLISTsc l) => (out "[";outList l;out "]")
     | JSGetVar qualid => out (hd(#id qualid))
     | JSSetVar(qualid, js) => (out ((hd(#id qualid))^"="); emit js)
+    | JSFun (qualid, js) => (out ("function "^(hd(#id qualid))^"()\n{"); emit js; out "\n}")
     | _ => out " Error! "
 
     and emitList jsinstrlist = ()
