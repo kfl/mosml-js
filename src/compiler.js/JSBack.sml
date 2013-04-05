@@ -1,4 +1,3 @@
-
 (* JSBack.sml : translation of lambda terms to lists of intermediate JS-instructions. *)
 
 open Const Lambda Prim JSInstruct;

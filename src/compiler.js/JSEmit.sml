@@ -22,7 +22,7 @@ in
     case jsinstr of
       JSAdd(a,b) => (emit a; out "+"; emit b)
     | JSConst(JSATOMsc k) => outConst k
-    | JSConst(JSLISTsc l) => (out "[";outList l;out "]")
+    | JSConst(JSLISTsc l) => (out "["; outList l; out "]")
     | JSGetVar qualid => out (hd(#id qualid))
     | JSSetVar(qualid, js) => (out ((hd(#id qualid))^"="); emit js)
     | JSFun (qualid, js) => (out ("function "^(hd(#id qualid))^"()\n{"); emit js; out "\n}")
