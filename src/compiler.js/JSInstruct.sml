@@ -16,7 +16,7 @@ datatype JSInstruction =
   | JSSetVar of QualifiedIdent * JSInstruction
   | JSConst of JSConstant
   | JSAdd of JSInstruction * JSInstruction
-  | JSFun of JSInstruction list * JSInstruction
-  | JSVar of int
+  | JSFun of JSInstruction * QualifiedIdent
+  | JSScope of JSInstruction list * JSInstruction
   | JSError of int (* Note: this is just for debugging purposes. *)
 ;

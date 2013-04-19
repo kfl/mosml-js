@@ -24,16 +24,15 @@ in
     | JSConst(JSATOMsc k) => outConst k
     | JSConst(JSLISTsc l) => (out "["; outList l; out "]")
     | JSGetVar qualid => out (hd(#id qualid))
-    | JSFun (list,js) => (out ("(function()\n{"); scopeLoop list 0; out "return "; emit js; out ";\n}())") (*anonymous function*)
+    | JSFun(JSScope(jss, js), qualid) => 
+        (out ("function("^(hd(#id qualid))^"){\n"); scopeLoop jss; out "return "; emit js; out ";\n}")
+    | JSFun(js, qualid) => (out ("function("^(hd(#id qualid))^")\n{"); out "return "; emit js; out ";\n}")
     | JSSetVar(qualid, js) => (out ("var "^(hd(#id qualid))^" = "); emit js)
-    | JSSetVar(qualid, (JSFun(list, js))) => (out ("var "^(hd(#id qualid))^" = function ()\n{"); scopeLoop list 0; emit js; out "\n}") (*function*)
-    | JSVar(i) => out ("var"^Int.toString(i))
+    | JSScope(jss, js) => (out "(function(){\n"; scopeLoop jss; out "return "; emit js; out ";\n}())")
     | _ => out " Error! "
 
-    and emitList jsinstrlist = ()
-
-    and scopeLoop [] _ = ()
-      | scopeLoop (exp::exps) i = (out ("var var"^Int.toString(i)^" = "); emit exp; out ";\n"; scopeLoop exps (i+1))
+    and scopeLoop [] = ()
+      | scopeLoop (exp::exps) = (emit exp; out ";\n"; scopeLoop exps)
   ;
 
   fun emitPhrase os (ajs : JSInstruction) =

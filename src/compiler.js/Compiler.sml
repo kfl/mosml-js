@@ -409,7 +409,7 @@ fun updateCurrentCompState ((iBas, ExEnv as EXISTS(T,(ME,FE,GE,VE, TE))), RE) =
   else ()
 );
 
-val printLambda = ref false
+val printLambda = ref true
 val printJavascript = ref false
 
 fun compLamPhrase jsos os state (RE, lams) =
@@ -420,7 +420,7 @@ fun compLamPhrase jsos os state (RE, lams) =
        else ();
        if !printJavascript then (msgIBlock 0; Pr_JS.printJSLam lam; msgString ";"; msgEOL(); msgEBlock())
        else ();
-       emitPhrase jsos let val ajs = compileJSLambda lam in ajs end;
+       emitPhrase jsos let val ajs = compileJSLambda lam [] in ajs end;
        emit_phrase os let val zam = Back.compileLambda is_pure lam in zam end))
     lams;
     updateCurrentCompState (state, RE)
