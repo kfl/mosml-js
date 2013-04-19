@@ -36,6 +36,7 @@ in
     | JSConst(JSATOMsc k) => outConst k
     | JSConst(JSLISTsc l) => (out "["; outList l; out "]")
     | JSGetVar qualid => out (hd(#id qualid))
+    | JSGetList (i,qualid) => (out (hd(#id qualid)^"["^i^"]"))
     | JSFun(JSScope(jss, js), qualid) => 
         (out ("function("^(hd(#id qualid))^"){\n"); scopeLoop jss; out "return "; emit js; out ";\n}")
     | JSFun(js, qualid) => (out ("function("^(hd(#id qualid))^")\n{"); out "return "; emit js; out ";\n}")

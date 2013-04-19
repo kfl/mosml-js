@@ -56,6 +56,7 @@ and compileJSPrim (prim : primitive) args env =
   | (Pccall call, args) => compileCall call args env
   | (Pget_global(uid,_), _ )=> JSGetVar uid
   | (Pset_global(uid,_), [arg]) => JSSetVar (uid, compileJSLambda arg env)
+  | (Pfield(i), [Lvar(j)]) => JSGetList(Int.toString(i),(nth(env,j)))
   | _ => JSError(0) (* else print error *)
 
 and extractLetList exp list env =

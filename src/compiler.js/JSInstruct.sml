@@ -15,6 +15,7 @@ datatype JSConstant =
 
 datatype JSInstruction =
     JSGetVar of QualifiedIdent
+  | JSGetList of string * QualifiedIdent
   | JSSetVar of QualifiedIdent * JSInstruction
   | JSConst of JSConstant
   | JSAdd of JSOp * JSInstruction * JSInstruction
