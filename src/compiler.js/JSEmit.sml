@@ -1,15 +1,21 @@
 local
   open JSInstruct Const TextIO List;
   val outstream = ref stdOut;
+  val arch = Option.valOf(Int.precision);
 in
 
   fun out (s : string) =
     output (!outstream, s);
   ;
 
-  fun outConst (JSNUMscon i) = out i
-    | outConst (JSSTRscon s) = out ("\""^s^"\"")
+  fun outConst scon =
+    case scon of
+      JSINTscon i => out i
+    | JSWORDscon w => out w
+    | JSREALscon r => out r
+    | JSSTRscon s => out ("\""^s^"\"")
   ;
+
   fun outList [] = ()
     | outList ((JSLISTsc s) :: []) = (out "["; outList s; out "]")
     | outList ((JSATOMsc s) :: [])= outConst s
@@ -17,10 +23,16 @@ in
     | outList ((JSATOMsc s) :: ss) = (outConst s; out ","; outList ss)
   ;
 
+  val overflowCheck = if arch = 63 then "overflowCheck64(" else "overflowCheck32(";
+
   (*Emit the given phrase in abstract js language defined in JSInstruct.sml.*)
   fun emit jsinstr =
     case jsinstr of
-      JSAdd(js1,js2) => (emit js1; out "+"; emit js2)
+      JSAdd(JSConcat, js1, js2) => (emit js1; out "+"; emit js2)
+    | JSAdd(JSAddInt, js1, js2) => (out overflowCheck; emit js1; out "+"; emit js2; out ")")
+    | JSSub(JSSubInt, js1, js2) => (out overflowCheck; emit js1; out "-"; emit js2; out ")")
+    | JSMul(JSMulInt, js1, js2) => (out overflowCheck; emit js1; out "*"; emit js2; out ")")
+    | JSDiv(JSDivInt, js1, js2) => (out overflowCheck; out "division("; emit js1; out ","; emit js2; out "))")
     | JSConst(JSATOMsc k) => outConst k
     | JSConst(JSLISTsc l) => (out "["; outList l; out "]")
     | JSGetVar qualid => out (hd(#id qualid))
