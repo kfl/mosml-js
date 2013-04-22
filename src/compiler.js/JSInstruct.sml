@@ -25,8 +25,14 @@ datatype JSInstruction =
   | JSMod of JSOp * JSInstruction * JSInstruction
   | JSFun of JSInstruction * QualifiedIdent
   | JSScope of JSInstruction list * JSInstruction
+  | JSIf of JSInstruction * JSInstruction * JSInstruction
+  | JSNot of JSInstruction
+  | JSTest of JSPrimTest * JSInstruction * JSInstruction
   | JSError of int (* Note: this is just for debugging purposes. *)
 
 and JSOp =
   JSAddInt | JSSubInt | JSMulInt | JSDivInt | JSModInt | JSConcat
+
+and JSPrimTest =
+    JSeq | JSnoteq | JSlt | JSle | JSgt | JSge
 ;

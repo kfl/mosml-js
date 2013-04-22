@@ -33,6 +33,7 @@ in
     | JSSub(JSSubInt, js1, js2) => (out overflowCheck; emit js1; out "-"; emit js2; out ")")
     | JSMul(JSMulInt, js1, js2) => (out overflowCheck; emit js1; out "*"; emit js2; out ")")
     | JSDiv(JSDivInt, js1, js2) => (out overflowCheck; out "division("; emit js1; out ","; emit js2; out "))")
+    | JSMod(JSModInt, js1, js2) => (out overflowCheck; emit js1; out "%"; emit js2; out ")")
     | JSConst(JSATOMsc k) => outConst k
     | JSConst(JSLISTsc l) => (out "["; outList l; out "]")
     | JSGetVar qualid => out (hd(#id qualid))
@@ -40,8 +41,21 @@ in
     | JSFun(JSScope(jss, js), qualid) => 
         (out ("function("^(hd(#id qualid))^"){\n"); scopeLoop jss; out "return "; emit js; out ";\n}")
     | JSFun(js, qualid) => (out ("function("^(hd(#id qualid))^")\n{"); out "return "; emit js; out ";\n}")
+    | JSIf(tst, js1, js2) => 
+      (case tst of 
+        JSTest(_,_,_) => (out "(function(){\nif"; emit tst; out "{\nreturn "; emit js1; out ";\n} else {\nreturn "; 
+         emit js2; out ";\n}}())")
+      | _ => (out "(function(){\nif("; emit tst; out "){\nreturn "; emit js1; out ";\n} else {\nreturn "; 
+         emit js2; out ";\n}}())")
+      )
     | JSSetVar(qualid, js) => (out ("var "^(hd(#id qualid))^" = "); emit js)
     | JSScope(jss, js) => (out "(function(){\n"; scopeLoop jss; out "return "; emit js; out ";\n}())")
+    | JSTest(tst, js1, js2) => 
+      (case tst of
+        JSeq => (out "("; emit js1; out " === "; emit js2; out ")")
+      | _ => out " Error! "
+      )
+    | JSNot(js) => (out "!"; emit js)
     | _ => out " Error! "
 
     and scopeLoop [] = ()

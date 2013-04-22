@@ -37,11 +37,12 @@ in
   case exp of
     Lconst (ATOMsc scon) => JSConst (compileSCon scon)
   | Lfn (exp) => JSFun (compileJSLambda exp env', hd(env'))
-  | Lprim (prim, args) => compileJSPrim prim args env
+  | Lif (tst, exp1, exp2) => JSIf (compileJSLambda tst env, compileJSLambda exp1 env, compileJSLambda exp2 env)
   | Llet ([exp1], exp2) =>
         JSScope (extractLetList exp2 [JSSetVar(hd(env'), compileJSLambda exp1 env)] env')
   | Lletrec ([exp1], exp2) => 
         JSScope (extractLetList exp2 [JSSetVar(hd(env'), compileJSLambda exp1 env')] env')
+  | Lprim (prim, args) => compileJSPrim prim args env
   | Lvar (i) => JSGetVar(nth(env,i))
   | _ => JSError(0) (* else print error *)
 end
@@ -57,6 +58,12 @@ and compileJSPrim (prim : primitive) args env =
   | (Pget_global(uid,_), _ )=> JSGetVar uid
   | (Pset_global(uid,_), [arg]) => JSSetVar (uid, compileJSLambda arg env)
   | (Pfield(i), [Lvar(j)]) => JSGetList(Int.toString(i),(nth(env,j)))
+  | (Ptest(bool_test), [arg1, arg2]) => (* do not work on lists *)
+    (case bool_test of
+      Pint_test(PTeq) => JSTest(JSeq, compileJSLambda arg1 env, compileJSLambda arg2 env)
+    | _ => JSError(0)
+    )
+  | (Pnot, [arg]) => JSNot(compileJSLambda arg env)
   | _ => JSError(0) (* else print error *)
 
 and extractLetList exp list env =
