@@ -28,6 +28,7 @@ datatype JSInstruction =
   | JSIf of JSInstruction * JSInstruction * JSInstruction
   | JSNot of JSInstruction
   | JSTest of JSPrimTest * JSInstruction * JSInstruction
+  | JSApply of JSInstruction * JSInstruction list
   | JSError of int (* Note: this is just for debugging purposes. *)
 
 and JSOp =

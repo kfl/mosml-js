@@ -39,8 +39,8 @@ in
     | JSGetVar qualid => out (hd(#id qualid))
     | JSGetList (i,qualid) => (out (hd(#id qualid)^"["^i^"]"))
     | JSFun(JSScope(jss, js), qualid) => 
-        (out ("function("^(hd(#id qualid))^"){\n"); scopeLoop jss; out "return "; emit js; out ";\n}")
-    | JSFun(js, qualid) => (out ("function("^(hd(#id qualid))^")\n{"); out "return "; emit js; out ";\n}")
+        (out ("function("^(hd(#id qualid))^"){\n"); scopeLoop jss; out "return "; emit js; out ";}")
+    | JSFun(js, qualid) => (out ("function("^(hd(#id qualid))^")\n{"); out "return "; emit js; out ";}")
     | JSIf(tst, js1, js2) => 
       (case tst of 
         JSTest(_,_,_) => 
@@ -56,7 +56,11 @@ in
       | _ => out " Error! "
       )
     | JSNot(js) => (out "!"; emit js)
+    | JSApply(func, args) => (emit func; emitArgs args)
     | _ => out " Error! "
+
+    and emitArgs [] = ()
+      | emitArgs (arg::args) = (out "("; emit arg; out ")"; emitArgs args)
 
     and scopeLoop [] = ()
       | scopeLoop (exp::exps) = (emit exp; out ";\n"; scopeLoop exps)

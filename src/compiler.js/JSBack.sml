@@ -35,7 +35,8 @@ let
   val env' = updateEnv env
 in
   case exp of
-    Lconst (ATOMsc scon) => JSConst (compileSCon scon)
+    Lapply (func, args) => JSApply(compileJSLambda func env, compileJSLambdaList args env)
+  | Lconst (ATOMsc scon) => JSConst (compileSCon scon)
   | Lfn (exp) => JSFun (compileJSLambda exp env', hd(env'))
   | Lif (tst, exp1, exp2) => JSIf (compileJSLambda tst env, compileJSLambda exp1 env, compileJSLambda exp2 env)
   | Llet ([exp1], exp2) =>
@@ -65,6 +66,9 @@ and compileJSPrim (prim : primitive) args env =
     )
   | (Pnot, [arg]) => JSNot(compileJSLambda arg env)
   | _ => JSError(0) (* else print error *)
+
+and compileJSLambdaList [] _ = []
+  | compileJSLambdaList (exp::exps) env = (compileJSLambda exp env)::(compileJSLambdaList exps env)
 
 and extractLetList exp list env =
 let
