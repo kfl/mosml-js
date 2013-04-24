@@ -44,9 +44,9 @@ in
     | JSIf(tst, js1, js2) => 
       (case tst of 
         JSTest(_,_,_) => 
-          (out "(function(){"; emit tst; out "? (return "; emit js1; out ") : (return "; emit js2; out ")}())")
+          (out "(function(){ return ("; emit tst; out "? "; emit js1; out " : "; emit js2; out ")}())")
       | _ => 
-          (out "(function(){"; emit tst; out "? (return "; emit js1; out ") : (return "; emit js2; out ")}())")
+          (out "(function(){ return ("; emit tst; out "? "; emit js1; out " : "; emit js2; out ")}())")
       )
     | JSSetVar(qualid, js) => (out ("var "^(hd(#id qualid))^" = "); emit js)
     | JSScope(jss, js) => (out "(function(){\n"; scopeLoop jss; out "return "; emit js; out ";\n}())")
