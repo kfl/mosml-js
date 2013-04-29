@@ -14,6 +14,7 @@ in
   )
 end;
 
+(* Handle constants of lambda primitives*)
 fun compileSCon scon =
 let
   val const = case scon of
@@ -25,6 +26,10 @@ let
 in
   JSATOMsc(const)
 end;
+
+fun compileBool (1,2)= JSConst(JSBool(JSTrue))
+  | compileBool (0,2) = JSConst(JSBool(JSFalse))
+    
 
 (* Converts expressions of Lambda to expressions of abstract JS.
    exp is the lambda expression.
@@ -65,6 +70,16 @@ and compileJSPrim (prim : primitive) args env =
     | _ => JSError(0)
     )
   | (Pnot, [arg]) => JSNot(compileJSLambda arg env)
+(*  | (Pmakeblock(CONtag(tag, span)), []) => 
+  | (Pmakeblock(CONtag(tag, span)), args) =>
+    (case (tag, span) of
+      (0,1) => JSConst(JSLISTsc(compileJSLambdaList args env))
+    | 
+    )
+    (case (tag, span) of
+      (1,2) => JSConst(JSBool(JSTrue))
+    | (0,2) => JSConst(JSBool(JSFalse))
+    ) *)
   | _ => JSError(0) (* else print error *)
 
 and compileJSLambdaList [] _ = []

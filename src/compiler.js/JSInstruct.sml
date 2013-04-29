@@ -8,9 +8,13 @@ datatype JSSCon =
   | JSREALscon of string
   | JSSTRscon of string
 
+datatype JSBool =
+    JSTrue | JSFalse
+
 datatype JSConstant =
     JSATOMsc of JSSCon
   | JSLISTsc of JSConstant list
+  | JSBool of JSBool
 ;
 
 datatype JSInstruction =
@@ -32,7 +36,7 @@ datatype JSInstruction =
   | JSError of int (* Note: this is just for debugging purposes. *)
 
 and JSOp =
-  JSAddInt | JSSubInt | JSMulInt | JSDivInt | JSModInt | JSConcat
+    JSAddInt | JSSubInt | JSMulInt | JSDivInt | JSModInt | JSConcat
 
 and JSPrimTest =
     JSeq | JSnoteq | JSlt | JSle | JSgt | JSge
