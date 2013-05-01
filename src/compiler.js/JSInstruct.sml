@@ -11,12 +11,6 @@ datatype JSSCon =
 datatype JSBool =
     JSTrue | JSFalse
 
-datatype JSConstant =
-    JSATOMsc of JSSCon
-  | JSLISTsc of JSConstant list
-  | JSBoolsc of JSBool
-;
-
 datatype JSInstruction =
     JSGetVar of QualifiedIdent
   | JSGetList of string * QualifiedIdent
@@ -34,6 +28,11 @@ datatype JSInstruction =
   | JSTest of JSPrimTest * JSInstruction * JSInstruction
   | JSApply of JSInstruction * JSInstruction list
   | JSError of int (* Note: this is just for debugging purposes. *)
+
+and JSConstant =
+    JSATOMsc of JSSCon
+  | JSLISTsc of JSInstruction list
+  | JSBoolsc of JSBool
 
 and JSOp =
     JSAddInt | JSSubInt | JSMulInt | JSDivInt | JSModInt | JSConcat

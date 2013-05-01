@@ -19,16 +19,6 @@ in
   fun outBool JSTrue  = out "true"
     | outBool JSFalse = out "false"
 
-  fun outList [] = ()
-    | outList ((JSLISTsc s) :: []) = (out "["; outList s; out "]")
-    | outList ((JSATOMsc s) :: []) = outConst s
-    | outList ((JSBoolsc b) :: []) = outBool b
-    | outList ((JSLISTsc s) :: ss) = (out "["; outList s;out "]"; out ","; outList ss)
-    | outList ((JSATOMsc s) :: ss) = (outConst s; out ","; outList ss)
-    | outList ((JSBoolsc b) :: ss) = (outBool b; out ","; outList ss)
-    | outList _ = ()
-  ;
-
   val overflowCheck = if arch = 63 then "overflowCheck64(" else "overflowCheck32(";
 
   (*Emit the given phrase in abstract js language defined in JSInstruct.sml.*)
@@ -71,6 +61,10 @@ in
 
     and scopeLoop [] = ()
       | scopeLoop (exp::exps) = (emit exp; out ";\n"; scopeLoop exps)
+
+    and outList [] = ()
+      | outList (s::[]) = (emit s)
+      | outList (s::ss) = (emit s; out ","; outList ss)
   ;
 
   fun emitPhrase os (ajs : JSInstruction) =
