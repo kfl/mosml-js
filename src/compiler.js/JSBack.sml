@@ -27,9 +27,25 @@ in
   JSATOMsc(const)
 end;
 
-fun compileBool (1,2)= JSConst(JSBool(JSTrue))
-  | compileBool (0,2) = JSConst(JSBool(JSFalse))
-    
+(* Handle constants *)
+fun compileSC sconst = 
+  case sconst of
+    ATOMsc(scon) => compileSCon scon
+  | BLOCKsc(CONtag(tag, span), sclist) => 
+    (case (tag, span, sclist) of
+      (0,1,sclist)      => JSLISTsc(map compileSC sclist)
+    | (0,2,_)           => JSBoolsc(JSFalse)
+    | (1,2,[])          => JSBoolsc(JSTrue)
+    | (1,2,[elem,list]) => JSLISTsc(compileSC elem::(compileList list))
+    ) (* Will not catch other tags/spans, like refs. *)
+ (* | QUOTEsc(_) => () *)
+(* Handle nested list structure (flat it) *)
+and compileList block = 
+  case block of
+      BLOCKsc(CONtag(0,2),_)           => []
+    | BLOCKsc(CONtag(1,2),[elem,list]) => compileSC elem::(compileList list)
+    | _                                => []
+
 
 (* Converts expressions of Lambda to expressions of abstract JS.
    exp is the lambda expression.
@@ -41,7 +57,7 @@ let
 in
   case exp of
     Lapply (func, args) => JSApply(compileJSLambda func env, compileJSLambdaList args env)
-  | Lconst (ATOMsc scon) => JSConst (compileSCon scon)
+  | Lconst (scont) => JSConst (compileSC scont)
   | Lfn (exp) => JSFun (compileJSLambda exp env', hd(env'))
   | Lif (tst, exp1, exp2) => JSIf (compileJSLambda tst env, compileJSLambda exp1 env, compileJSLambda exp2 env)
   | Llet ([exp1], exp2) =>
@@ -70,16 +86,6 @@ and compileJSPrim (prim : primitive) args env =
     | _ => JSError(0)
     )
   | (Pnot, [arg]) => JSNot(compileJSLambda arg env)
-(*  | (Pmakeblock(CONtag(tag, span)), []) => 
-  | (Pmakeblock(CONtag(tag, span)), args) =>
-    (case (tag, span) of
-      (0,1) => JSConst(JSLISTsc(compileJSLambdaList args env))
-    | 
-    )
-    (case (tag, span) of
-      (1,2) => JSConst(JSBool(JSTrue))
-    | (0,2) => JSConst(JSBool(JSFalse))
-    ) *)
   | _ => JSError(0) (* else print error *)
 
 and compileJSLambdaList [] _ = []

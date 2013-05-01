@@ -14,7 +14,7 @@ datatype JSBool =
 datatype JSConstant =
     JSATOMsc of JSSCon
   | JSLISTsc of JSConstant list
-  | JSBool of JSBool
+  | JSBoolsc of JSBool
 ;
 
 datatype JSInstruction =

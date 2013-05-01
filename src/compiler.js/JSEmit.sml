@@ -16,11 +16,17 @@ in
     | JSSTRscon s => out ("\""^s^"\"")
   ;
 
+  fun outBool JSTrue  = out "true"
+    | outBool JSFalse = out "false"
+
   fun outList [] = ()
     | outList ((JSLISTsc s) :: []) = (out "["; outList s; out "]")
-    | outList ((JSATOMsc s) :: [])= outConst s
+    | outList ((JSATOMsc s) :: []) = outConst s
+    | outList ((JSBoolsc b) :: []) = outBool b
     | outList ((JSLISTsc s) :: ss) = (out "["; outList s;out "]"; out ","; outList ss)
     | outList ((JSATOMsc s) :: ss) = (outConst s; out ","; outList ss)
+    | outList ((JSBoolsc b) :: ss) = (outBool b; out ","; outList ss)
+    | outList _ = ()
   ;
 
   val overflowCheck = if arch = 63 then "overflowCheck64(" else "overflowCheck32(";
@@ -36,6 +42,7 @@ in
     | JSMod(JSModInt, js1, js2) => (out overflowCheck; emit js1; out "%"; emit js2; out ")")
     | JSConst(JSATOMsc k) => outConst k
     | JSConst(JSLISTsc l) => (out "["; outList l; out "]")
+    | JSConst(JSBoolsc b) => outBool b
     | JSGetVar qualid => out (hd(#id qualid))
     | JSGetList (i,qualid) => (out (hd(#id qualid)^"["^i^"]"))
     | JSFun(JSScope(jss, js), qualid) => 
@@ -44,9 +51,9 @@ in
     | JSIf(tst, js1, js2) => 
       (case tst of 
         JSTest(_,_,_) => 
-          (out "(function(){ return ("; emit tst; out "? "; emit js1; out " : "; emit js2; out ")}())")
+          (out "(function(){ return ("; emit tst; out " ? "; emit js1; out " : "; emit js2; out ")}())")
       | _ => 
-          (out "(function(){ return ("; emit tst; out "? "; emit js1; out " : "; emit js2; out ")}())")
+          (out "(function(){ return ("; emit tst; out " ? "; emit js1; out " : "; emit js2; out ")}())")
       )
     | JSSetVar(qualid, js) => (out ("var "^(hd(#id qualid))^" = "); emit js)
     | JSScope(jss, js) => (out "(function(){\n"; scopeLoop jss; out "return "; emit js; out ";\n}())")
