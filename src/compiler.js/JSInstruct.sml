@@ -31,6 +31,8 @@ datatype JSInstruction =
   | JSAnd of JSInstruction * JSInstruction
   | JSOr of JSInstruction * JSInstruction
   | JSWhile of JSInstruction * JSInstruction
+  | JSUnspec
+  | JSSwitch of JSInstruction * (JSInstruction * JSInstruction) list * JSInstruction
   | JSError of int (* Note: this is just for debugging purposes. *)
 
 and JSConstant =

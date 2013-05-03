@@ -58,6 +58,8 @@ in
     | JSAnd(js1, js2) => (emit js1; out "&&"; emit js2)
     | JSOr(js1, js2) => (emit js1; out "||"; emit js2)
     | JSWhile(exp, body) => (out "while ("; emit exp; out "){\n"; emit body; out "\n}")
+    | JSUnspec => out ""
+    | JSSwitch(exp, clist, def) => (out "switch("; emit exp; out "){"; map (fn (lbl, exp') => (out "\ncase "; emit lbl; out ":\n"; emit exp')) clist; out "\ndefault:"; emit def; out "\n}")
     | _ => out " Error! "
 
     and emitArgs [] = ()
