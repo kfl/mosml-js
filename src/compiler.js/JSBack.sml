@@ -65,6 +65,12 @@ in
         JSScope (extractLetList exp2 [JSSetVar(hd(env'), compileJSLambda exp1 env')] env')
   | Lprim (prim, args) => compileJSPrim prim args env
   | Lvar (i) => JSGetVar(nth(env,i))
+  | Lseq (exp1, exp2) => JSSeq(compileJSLambda exp1 env, compileJSLambda exp2 env)
+  | Landalso (exp1, exp2) => JSAnd(compileJSLambda exp1 env, compileJSLambda exp2 env)
+  | Lorelse (exp1, exp2) => JSOr(compileJSLambda exp1 env, compileJSLambda exp2 env)
+  | Lwhile (exp, body) => JSWhile(compileJSLambda exp env, compileJSLambda body env)
+  | Lcase (exp, list) => JSError(1)
+  | Lstatichandle (exp1, exp2) => JSError(2)
   | _ => JSError(0) (* else print error *)
 end
 

@@ -54,6 +54,10 @@ in
       )
     | JSNot(js) => (out "!"; emit js)
     | JSApply(func, args) => (emit func; emitArgs args)
+    | JSSeq(js1, js2) => (out "("; emit js1; out ","; emit js2; out ")")
+    | JSAnd(js1, js2) => (emit js1; out "&&"; emit js2)
+    | JSOr(js1, js2) => (emit js1; out "||"; emit js2)
+    | JSWhile(exp, body) => (out "while ("; emit exp; out "){\n"; emit body; out "\n}")
     | _ => out " Error! "
 
     and emitArgs [] = ()

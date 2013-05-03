@@ -27,6 +27,10 @@ datatype JSInstruction =
   | JSNot of JSInstruction
   | JSTest of JSPrimTest * JSInstruction * JSInstruction
   | JSApply of JSInstruction * JSInstruction list
+  | JSSeq of JSInstruction * JSInstruction
+  | JSAnd of JSInstruction * JSInstruction
+  | JSOr of JSInstruction * JSInstruction
+  | JSWhile of JSInstruction * JSInstruction
   | JSError of int (* Note: this is just for debugging purposes. *)
 
 and JSConstant =
