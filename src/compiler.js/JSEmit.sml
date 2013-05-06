@@ -16,9 +16,6 @@ in
     | JSSTRscon s => out ("\""^s^"\"")
   ;
 
-  fun outBool JSTrue  = out "true"
-    | outBool JSFalse = out "false"
-
   val overflowCheck = if arch = 63 then "overflowCheck64(" else "overflowCheck32(";
 
   (*Emit the given phrase in abstract js language defined in JSInstruct.sml.*)
@@ -30,11 +27,8 @@ in
     | JSMul(JSMulInt, js1, js2) => (out overflowCheck; emit js1; out "*"; emit js2; out ")")
     | JSDiv(JSDivInt, js1, js2) => (out overflowCheck; out "division("; emit js1; out ","; emit js2; out "))")
     | JSMod(JSModInt, js1, js2) => (out overflowCheck; emit js1; out "%"; emit js2; out ")")
-    | JSConst(JSATOMsc k) => outConst k
-    | JSConst(JSLISTsc l) => (out "["; outList l; out "]")
-    | JSConst(JSBoolsc b) => outBool b
+    | JSConst(c) => outConst c
     | JSGetVar qualid => out (hd(#id qualid))
-    | JSGetList (i,qualid) => (out (hd(#id qualid)^"["^i^"]"))
     | JSFun(JSScope(jss, js), qualid) => 
         (out ("function("^(hd(#id qualid))^"){\n"); scopeLoop jss; out "return "; emit js; out ";}")
     | JSFun(js, qualid) => (out ("function("^(hd(#id qualid))^")\n{"); out "return "; emit js; out ";}")
@@ -60,6 +54,8 @@ in
     | JSWhile(exp, body) => (out "while ("; emit exp; out "){\n"; emit body; out "\n}")
     | JSUnspec => out ""
     | JSSwitch(exp, clist, def) => (out "switch("; emit exp; out "){"; map (fn (lbl, exp') => (out "\ncase "; emit lbl; out ":\n"; emit exp')) clist; out "\ndefault:"; emit def; out "\n}")
+    | JSBlock(tag, args) => outBlock tag args
+    | JSGetField (i,qualid) => (out (hd(#id qualid)^".args["^i^"]"))
     | _ => out " Error! "
 
     and emitArgs [] = ()
@@ -68,9 +64,17 @@ in
     and scopeLoop [] = ()
       | scopeLoop (exp::exps) = (emit exp; out ";\n"; scopeLoop exps)
 
+    and outBlock tag [] = out ("new Constructor("^(Int.toString tag)^",[])")
+      | outBlock tag (arg::args) = 
+        (out ("new Constructor("^(Int.toString tag)^",["); emit arg; map (fn x => (out ", "; emit x)) args; out "])")
+(*
+    and outBlock tag [] = out "new Constructor("+Int.toString tag+",[])"
+      | outBlock tag (arg::[]) = (out "new Constructor("+Int.toString tag+",["; emit arg; out "])")
+      | outBlock tag args = (out "new Constructor("+Int.toString tag+",["; outList args; out "])")
+    
     and outList [] = ()
-      | outList (s::[]) = (emit s)
-      | outList (s::ss) = (emit s; out ","; outList ss)
+      | outList (s::[]) = emit s
+      | outList (s::ss) = (emit s; out ","; outList ss) *)
   ;
 
   fun emitPhrase os (ajs : JSInstruction) =
