@@ -1,0 +1,53 @@
+(prim (set_global lambda_tests.hello/1) "goodbye")
+(prim (set_global lambda_tests.Lvar_concat/2) let "hello" in let "world" in let (prim (ccall2 sml_concat) var:1 var:0) in var:0 end end end)
+(prim (set_global lambda_tests.Lconst_ATOMsc_INTscon/3) 15)
+(prim (set_global lambda_tests.Lconst_ATOMsc_WORDscon/4) 0wxF)
+(prim (set_global lambda_tests.Lconst_ATOMsc_CHARscon/5) #"F")
+(prim (set_global lambda_tests.Lconst_ATOMsc_REALscon/6) 15.0)
+(prim (set_global lambda_tests.Lconst_ATOMsc_STRINGscon/7) "fifteen")
+(prim (set_global lambda_tests.Lconst_BLOCKsc_list/8) (BLOCK 1:2 1 (BLOCK 1:2 2 (BLOCK 1:2 3 (BLOCK 1:2 4 (BLOCK 1:2 5 (BLOCK 0:2 )))))))
+(prim (set_global lambda_tests.Lconst_BLOCKsc_tuple/9) (BLOCK 0:1 1 2 3 4 5))
+(prim (set_global lambda_tests.Lconst_BLOCKsc_false/10) (BLOCK 0:2 ))
+(prim (set_global lambda_tests.Lconst_BLOCKsc_true/11) (BLOCK 1:2 ))
+(prim (set_global lambda_tests.Lfn_normal/12) (fn (prim (smladdint) (prim (smladdint) (prim (field 0) var:0) 1) (prim (field 1) var:0))))
+(prim (set_global lambda_tests.Lapply_normal/13) (app (prim (get_global lambda_tests.Lfn_normal/12) ) (BLOCK 0:1 1 2)))
+(prim (set_global lambda_tests.Lfn_curried/14) (fn (fn (prim (smladdint) var:1 var:0))))
+(prim (set_global lambda_tests.Lapply_closure1/15) (app (prim (get_global lambda_tests.Lfn_curried/14) ) 2))
+(prim (set_global lambda_tests.Lapply_closure2/16) (app (prim (get_global lambda_tests.Lapply_closure1/15) ) 3))
+(prim (set_global lambda_tests.Lapply_closure3/17) (app (prim (get_global lambda_tests.Lfn_curried/14) ) 2 3))
+(prim (set_global lambda_tests.a/18) 2)
+(prim (set_global lambda_tests.Llet_test/19) let 1 in let 1 in (prim (test:eq) (prim (smladdint) var:1 var:0) 2) end end)
+(prim (set_global lambda_tests.Lletrec_test1/20) (fn (prim (smladdint) var:0 var:0)))
+(prim (set_global lambda_tests.Lletrec_test2/21) (fn letrec (fn var:0) in (app var:0 var:1) end))
+(prim (set_global lambda_tests.Lletrec_test3/22) (prim (test:eq) (app (prim (get_global lambda_tests.Lletrec_test2/21) ) 2) 2))
+(prim (set_global lambda_tests.Lhandle_test/23) ((prim (smldivint) 10 0) handle if(prim (test:eq_test) (prim (field 0) var:0) (prim (get_global General.exn_div/0) )) then (0) else (prim (raise) var:0)))
+(prim (set_global lambda_tests.Lcase_fib_rec/24) (fn ((case var:0 of 0 : 1 1 : 1) statichandle (prim (smlsubint) (prim (smladdint) (prim (smlsubint) (app (prim (get_global lambda_tests.Lcase_fib_rec/24) ) var:0) 1) (app (prim (get_global lambda_tests.Lcase_fib_rec/24) ) var:0)) 2))))
+(prim (set_global lambda_tests.Lcase_fib_case/25) (fn let var:0 in ((case var:0 of 0 : 1 1 : 1) statichandle (prim (smlsubint) (prim (smladdint) (prim (smlsubint) (app (prim (get_global lambda_tests.Lcase_fib_case/25) ) var:0) 1) (app (prim (get_global lambda_tests.Lcase_fib_case/25) ) var:0)) 2)) end))
+File "lambda_tests.sml", line 75-76, characters 4-61:
+! ....Lcase_not_exhaustive 1 = 1
+!   | Lcase_not_exhaustive 2 = 2
+! Warning: pattern matching is not exhaustive
+
+(prim (set_global lambda_tests.Lcase_not_exhaustive/26) (fn ((case var:0 of 1 : 1 2 : 2) statichandle (prim (raise) (prim (makeblock 0:1) (prim (get_global General.exn_match/0) ) (BLOCK 0:1 ))))))
+File "lambda_tests.sml", line 78-80, characters 4-137:
+! ....Lcase_curried 1 1 = 2
+!   | Lcase_curried n 1 = Lcase_curried (n-1) 1 + Lcase_curried 1 1
+!   | Lcase_curried 1 n = Lcase_curried (n-1) 1
+! Warning: pattern matching is not exhaustive
+
+(prim (set_global lambda_tests.Lcase_curried/27) (fn (fn ((case var:1 of 1 : ((case var:0 of 1 : 2) statichandle (app (prim (get_global lambda_tests.Lcase_curried/27) ) (prim (smlsubint) var:0 1) 1))) statichandle ((case var:0 of 1 : (prim (smladdint) (app (prim (get_global lambda_tests.Lcase_curried/27) ) (prim (smlsubint) var:1 1) 1) (app (prim (get_global lambda_tests.Lcase_curried/27) ) 1 1))) statichandle (prim (raise) (prim (makeblock 0:1) (prim (get_global General.exn_match/0) ) (BLOCK 0:1 ))))))))
+(prim (set_global lambda_tests.Lcase_list/28) (fn ((switch:2 var:0 of 0:2 : 0) statichandle (prim (smladdint) 1 (app (prim (get_global lambda_tests.Lcase_list/28) ) (prim (field 1) var:0))))))
+(prim (set_global lambda_tests.Lif_a/29) 63)
+(prim (set_global lambda_tests.Lif_b/30) if(prim (test:eq) (prim (get_global lambda_tests.Lif_a/29) ) 63) then (10) else 20)
+(prim (set_global lambda_tests.Lif_c/31) if(prim (test:eq) (prim (get_global lambda_tests.Lif_b/30) ) 20) then ("a") else "b")
+(prim (set_global lambda_tests.Lif_d/32) (BLOCK 0:2 ))
+(prim (set_global lambda_tests.Lif_d/33) (BLOCK 1:2 ))
+(prim (set_global lambda_tests.Lif_e/34) if(prim (get_global lambda_tests.Lif_d/33) ) then (1) else 2)
+(prim (set_global lambda_tests.Lif_f/35) if(prim (not) (prim (get_global lambda_tests.Lif_d/33) )) then (1) else 2)
+(prim (set_global lambda_tests.Lif_test/36) (fn if(prim (test:gt) var:0 0) then (1) else 0))
+(prim (set_global lambda_tests.Lseq_discard_evaluation/37) (1; 2))
+((prim (set_global lambda_tests.Lseq_func1/39) (fn ((case var:0 of 0 : 0) statichandle (prim (smlsubint) (prim (smladdint) 1 (app (prim (get_global lambda_tests.Lseq_func2/38) ) var:0)) 1)))); (prim (set_global lambda_tests.Lseq_func2/38) (fn ((case var:0 of 0 : 0) statichandle (prim (smlsubint) (prim (smlmulint) 2 (app (prim (get_global lambda_tests.Lseq_func1/39) ) var:0)) 1)))))
+(prim (set_global lambda_tests.Lwhile_infinite/40) while (BLOCK 1:2 ) do 1)
+(prim (set_global lambda_tests.Landalso_test1/41) (prim (ccall2 sml_equal) ((BLOCK 1:2 ) andalso (BLOCK 0:2 )) (BLOCK 0:2 )))
+(prim (set_global lambda_tests.Lorelse_test/42) (prim (ccall2 sml_equal) ((BLOCK 0:2 ) orelse (BLOCK 1:2 )) (BLOCK 1:2 )))
+let "Lunspec" in unspec end

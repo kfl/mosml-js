@@ -20,10 +20,10 @@ val Lconst_BLOCKsc_list = [1, 2, 3, 4, 5]
 val Lconst_BLOCKsc_tuple = (1, 2, 3, 4, 5)
 val Lconst_BLOCKsc_false = false
 val Lconst_BLOCKsc_true = true
-val Lconst_BLOCKsc_ref = ref 10
+(* val Lconst_BLOCKsc_ref = ref 10 *)
 datatype 'a Lconst_BLOCKsc_datatype =
   Lconst_BLOCKsc_datatype_nil
-| 'a * 'a Lconst_BLOCKsc_datatype
+| Lconst_BLOCKsc_datatype_cons of 'a * 'a Lconst_BLOCKsc_datatype
 
 (* Lfn + Lapply *)
 fun Lfn_normal (x,y) = x+1+y;
@@ -46,7 +46,7 @@ val Llet_test =
 
 (* Lletrec *)
 fun Lletrec_test1 x = x+x
-val Lletrec_test2 y =
+fun Lletrec_test2 y =
   let
     fun Lletrec_test1 x = x
   in
@@ -59,7 +59,7 @@ val Lletrec_test3 = Lletrec_test2 2 = 2
 (* Lstaticfail *)
 
 (* Lhandle *)
-val Lhandle_test = 10/0 handle Div => 0
+val Lhandle_test = 10 div 0 handle Div => 0
 
 (* Lstatichandle -> Lcase *)
 fun Lcase_fib_rec 0 = 1
@@ -94,7 +94,7 @@ val Lif_d = true;
 val Lif_e = if Lif_d then 1 else 2;
 val Lif_f = if not Lif_d then 1 else 2;
 
-fun Lif_test x : bool = if x then 1 else 0;
+fun Lif_test x = if x > 0 then 1 else 0;
 
 (* Lseq *)
 val Lseq_discard_evaluation = (1; 2)
