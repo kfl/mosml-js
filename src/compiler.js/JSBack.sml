@@ -56,6 +56,7 @@ in
   | Lunspec => JSUnspec
   | Lstatichandle (Lcase (exp, clist), def) => JSSwitch(0, compileJSLambda exp env, map (fn (scon,exp') => (compileSCon scon, compileJSLambda exp' env)) clist, compileJSLambda def env)
   | Lstatichandle (Lswitch (_, exp, clist), def) => JSSwitch(1, compileJSLambda exp env, map (fn (CONtag (tag,span), exp') => (JSConst(JSINTscon (Int.toString tag )), compileJSLambda exp' env)) clist, compileJSLambda def env)
+  | Lshared (lref, _) => compileJSLambda (!lref) env
   | _ => JSError(0) (* else print error *)
 end
 
@@ -77,6 +78,8 @@ and compileJSPrim (prim : primitive) args env =
     )
   | (Pnot, [arg]) => JSNot(compileJSLambda arg env)
   | (Pmakeblock(CONtag(tag,_)),args) => compileBlock tag args env
+  | (Praise, [arg]) => JSRaise(compileJSLambda arg env)
+  | (Praise, args) => JSError(0) (* TODO handle more args? Cases? *)
   | _ => JSError(0) (* else print error *)
 
 and compileJSLambdaList [] _ = []
