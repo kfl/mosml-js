@@ -54,8 +54,8 @@ in
     | JSOr(js1, js2) => (emit js1; out " || "; emit js2)
     | JSWhile(exp, body) => (out "while ("; emit exp; out "){\n"; emit body; out "\n}")
     | JSUnspec => out ""
-    | JSSwitch(0, exp, clist, def) => (out "switch("; emit exp; out "){"; map (fn (lbl, exp') => (out "\ncase "; emit lbl; out ":\n"; emit exp'; out "\nbreak;")) clist; out "\ndefault:"; emit def; out "\n}")
-    | JSSwitch(1, exp, clist, def) => (out "switch("; emit exp; out ".tag){"; map (fn (lbl, exp') => (out "\ncase "; emit lbl; out ":\n"; emit exp'; out "\nbreak;")) clist; out "\ndefault:"; emit def; out "\n}")
+    | JSSwitch(0, exp, clist, def) => (out "(function(){switch("; emit exp; out "){"; map (fn (lbl, exp') => (out "\ncase "; emit lbl; out ":\nreturn "; emit exp')) clist; out "\ndefault:\nreturn "; emit def; out "\n}}())")
+    | JSSwitch(1, exp, clist, def) => (out "(function(){switch("; emit exp; out ".tag){"; map (fn (lbl, exp') => (out "\ncase "; emit lbl; out ":\nreturn "; emit exp')) clist; out "\ndefault:\nreturn "; emit def; out "\n}}())")
     | JSBlock(tag, args) => outBlock tag args
     | JSGetField (i,qualid) => (out (hd(#id qualid)^".args["^i^"]"))
     | _ => out " Error! "

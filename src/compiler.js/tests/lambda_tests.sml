@@ -68,6 +68,14 @@ val Lletrec_test3 = Lletrec_test2 2 = 2
 (* Lhandle *)
 val Lhandle_test = 10 div 0 handle Div => 0
 
+exception Lhandle_exception1
+exception Lhandle_exception2 of int * int
+
+fun Lhandle_fun1 (0,0) = raise Lhandle_exception1
+  | Lhandle_fun1 (x,y) = raise Lhandle_exception2 (x,y)
+
+fun Lhandle_fun2 x = (Lhandle_fun1 x handle Lhandle_exception1 => 0) handle Lhandle_exception2 (n,m) => m
+
 (* Lstatichandle -> Lcase *)
 fun Lcase_fib_rec 0 = 1
   | Lcase_fib_rec 1 = 1
@@ -86,10 +94,10 @@ fun Lcase_curried 1 1 = 2
   | Lcase_curried n 1 = Lcase_curried (n-1) 1 + Lcase_curried 1 1
   | Lcase_curried 1 n = Lcase_curried (n-1) 1
 
+(* Lstatichandle -> Lswitch *)
 fun Lcase_list [] = 0
   | Lcase_list (x::xs) = 1 + Lcase_list xs
 
-(* Lstatichandle -> Lswitch *)
 
 (* Lif *)
 val Lif_a = 63;

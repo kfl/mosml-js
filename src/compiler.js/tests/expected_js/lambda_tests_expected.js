@@ -64,31 +64,44 @@ var Lletrec_test3 = Lletrec_test2(2) === 2;
 
 /* Lstatichandle -> Lcase */
 var Lcase_fib_rec = function(n) {
-    return switch(n) {
-        case 0: 1;
-        case 1: 1;
-        default: Lcase_fib_rec(n-1) + Lcase_fib_rec(n-2);
+    return (function(){
+        switch(n) {
+            case 0: return 1;
+            case 1: return 1;
+            default: return Lcase_fib_rec(n-1) + Lcase_fib_rec(n-2);
+        }());
     };
 };
 
 var Lcase_fib_case = function(n) {
-    return switch(n) {
-        case 0: 1;
-        case 1: 1;
-        default: Lcase_fib_case(n-1) + Lcase_fib_case(n-2);
+    return (function(){
+        switch(n) {
+            case 0: return 1;
+            case 1: return 1;
+            default: return Lcase_fib_case(n-1) + Lcase_fib_case(n-2);
+        }());
     };
 };
 
 var Lcase_not_exhaustive = function(var0) {
-    return switch(var0) {
-        case 1: 1;
-        case 2: 2;
-        default: /* TODO: Match error */
+    return (function(){
+        switch(var0) {
+            case 1: return 1;
+            case 2: return 2;
+            default: /* TODO: Match error */
+        }());
     };
 };
 
 /* Lstatichandle -> Lswitch */
-/* TODO: Lswitch */
+var Lcase_list = function(var0) {
+    return (function(){
+        switch(var0.tag) {
+            case 0: return 0;
+            default: return 1 + Lcase_list(var0.args[1]);
+        }());
+    };
+};
 
 /* Lif */
 var Lif_a = 63;
@@ -106,6 +119,25 @@ var Lif_test = function(x) {
 
 /* Lseq */
 /* TODO: Lseq */
+var Lseq_discard_evaluation = (1, 2);
+
+var Lseq_func1 = function(x) {
+    return (function(){
+        switch(x) {
+            case 0: return 0;
+            default: return 1 + Lseq_func2(x-1);
+        }());
+    };
+};
+
+var Lseq_func2 = function(x) {
+    return (function(){
+        switch(x) {
+            case 0: return 0;
+            default: return 2 * Lseq_func1(x-1);
+        }());
+    };
+};
 
 /* Lwhile */
 var Lwhile_infinite = while(true) {1};
