@@ -20,10 +20,19 @@ val Lconst_BLOCKsc_list = [1, 2, 3, 4, 5]
 val Lconst_BLOCKsc_tuple = (1, 2, 3, 4, 5)
 val Lconst_BLOCKsc_false = false
 val Lconst_BLOCKsc_true = true
+
 (* val Lconst_BLOCKsc_ref = ref 10 *)
+
 datatype 'a Lconst_BLOCKsc_datatype =
-  Lconst_BLOCKsc_datatype_nil
+  Lconst_BLOCKsc_datatype_nil1
+| Lconst_BLOCKsc_datatype_nil2
 | Lconst_BLOCKsc_datatype_cons of 'a * 'a Lconst_BLOCKsc_datatype
+
+val Lconst_BLOCKsc_datatype_test =
+  Lconst_BLOCKsc_datatype_cons(1,
+  Lconst_BLOCKsc_datatype_cons(2,
+  Lconst_BLOCKsc_datatype_cons(3,
+  Lconst_BLOCKsc_datatype_nil2)))
 
 (* Lfn + Lapply *)
 fun Lfn_normal (x,y) = x+1+y;
@@ -55,8 +64,6 @@ fun Lletrec_test2 y =
 val Lletrec_test3 = Lletrec_test2 2 = 2
 
 (* Lprim *)
-
-(* Lstaticfail *)
 
 (* Lhandle *)
 val Lhandle_test = 10 div 0 handle Div => 0
@@ -108,7 +115,7 @@ and Lseq_func2 0 = 0
 val Lwhile_infinite = while true do 1;
 
 (* Landalso + Lorelse *)
-val Landalso_test1 = (true andalso false) = false
+val Landalso_test = (true andalso false) = false
 val Lorelse_test = (false orelse true) = true
 
 (* Lunspec *)
