@@ -25,6 +25,7 @@ datatype JSInstruction =
   | JSTest of JSPrimTest * JSInstruction * JSInstruction
   | JSApply of JSInstruction * JSInstruction list
   | JSSeq of JSInstruction * JSInstruction
+  | JSSeqFun of JSInstruction * JSInstruction
   | JSAnd of JSInstruction * JSInstruction
   | JSOr of JSInstruction * JSInstruction
   | JSWhile of JSInstruction * JSInstruction
