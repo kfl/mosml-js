@@ -2,18 +2,15 @@
 
 open Const Prim;
 
-datatype JSSCon =
+datatype JSConstant =
     JSINTscon of string
   | JSWORDscon of string
   | JSREALscon of string
   | JSSTRscon of string
 
-datatype JSBool =
-    JSTrue | JSFalse
-
 datatype JSInstruction =
     JSGetVar of QualifiedIdent
-  | JSGetList of string * QualifiedIdent
+  | JSGetField of string * QualifiedIdent
   | JSSetVar of QualifiedIdent * JSInstruction
   | JSConst of JSConstant
   | JSAdd of JSOp * JSInstruction * JSInstruction
@@ -33,12 +30,8 @@ datatype JSInstruction =
   | JSWhile of JSInstruction * JSInstruction
   | JSUnspec
   | JSSwitch of JSInstruction * (JSInstruction * JSInstruction) list * JSInstruction
+  | JSBlock of int * JSInstruction list
   | JSError of int (* Note: this is just for debugging purposes. *)
-
-and JSConstant =
-    JSATOMsc of JSSCon
-  | JSLISTsc of JSInstruction list
-  | JSBoolsc of JSBool
 
 and JSOp =
     JSAddInt | JSSubInt | JSMulInt | JSDivInt | JSModInt | JSConcat
