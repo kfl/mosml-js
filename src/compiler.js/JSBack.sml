@@ -47,15 +47,15 @@ in
   | Lprim (prim, args) => compileJSPrim prim args env
   | Lvar (i) => JSGetVar(nth(env,i))
   | Lseq (exp1, exp2) => 
-    case exp1 of 
-    (Lprim(Pset_global(_,_),_))=> JSSeqFun(compileJSLambda exp1 env, compileJSLambda exp2 env)
-    | _ => JSSeq(compileJSLambda exp1 env, compileJSLambda exp2 env)
+    (case exp1 of 
+      (Lprim(Pset_global(_,_),_))=> JSSeqFun(compileJSLambda exp1 env, compileJSLambda exp2 env)
+    | _ => JSSeq(compileJSLambda exp1 env, compileJSLambda exp2 env))
   | Landalso (exp1, exp2) => JSAnd(compileJSLambda exp1 env, compileJSLambda exp2 env)
   | Lorelse (exp1, exp2) => JSOr(compileJSLambda exp1 env, compileJSLambda exp2 env)
   | Lwhile (exp, body) => JSWhile(compileJSLambda exp env, compileJSLambda body env)
   | Lunspec => JSUnspec
-  | Lstatichandle (Lcase (exp, clist), def) => JSSwitch(compileJSLambda exp env, map (fn (scon,exp') => (compileSCon scon, compileJSLambda exp' env)) clist , compileJSLambda def env)
-  | Lstatichandle (Lswitch (_, exp, clist), def) => JSError(1)
+  | Lstatichandle (Lcase (exp, clist), def) => JSSwitch(0, compileJSLambda exp env, map (fn (scon,exp') => (compileSCon scon, compileJSLambda exp' env)) clist, compileJSLambda def env)
+  | Lstatichandle (Lswitch (_, exp, clist), def) => JSSwitch(1, compileJSLambda exp env, map (fn (CONtag (tag,span), exp') => (JSConst(JSINTscon (Int.toString tag )), compileJSLambda exp' env)) clist, compileJSLambda def env)
   | _ => JSError(0) (* else print error *)
 end
 

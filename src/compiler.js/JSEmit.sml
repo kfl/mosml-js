@@ -54,7 +54,8 @@ in
     | JSOr(js1, js2) => (emit js1; out " || "; emit js2)
     | JSWhile(exp, body) => (out "while ("; emit exp; out "){\n"; emit body; out "\n}")
     | JSUnspec => out ""
-    | JSSwitch(exp, clist, def) => (out "switch("; emit exp; out "){"; map (fn (lbl, exp') => (out "\ncase "; emit lbl; out ":\n"; emit exp')) clist; out "\ndefault:"; emit def; out "\n}")
+    | JSSwitch(0, exp, clist, def) => (out "switch("; emit exp; out "){"; map (fn (lbl, exp') => (out "\ncase "; emit lbl; out ":\n"; emit exp'; out "\nbreak;")) clist; out "\ndefault:"; emit def; out "\n}")
+    | JSSwitch(1, exp, clist, def) => (out "switch("; emit exp; out ".tag){"; map (fn (lbl, exp') => (out "\ncase "; emit lbl; out ":\n"; emit exp'; out "\nbreak;")) clist; out "\ndefault:"; emit def; out "\n}")
     | JSBlock(tag, args) => outBlock tag args
     | JSGetField (i,qualid) => (out (hd(#id qualid)^".args["^i^"]"))
     | _ => out " Error! "
@@ -65,17 +66,9 @@ in
     and scopeLoop [] = ()
       | scopeLoop (exp::exps) = (emit exp; out ";\n"; scopeLoop exps)
 
-    and outBlock tag [] = out ("new Constructor("^(Int.toString tag)^",[])")
+    and outBlock tag [] = out ("Constructor("^(Int.toString tag)^")")
       | outBlock tag (arg::args) = 
-        (out ("new Constructor("^(Int.toString tag)^",["); emit arg; map (fn x => (out ", "; emit x)) args; out "])")
-(*
-    and outBlock tag [] = out "new Constructor("+Int.toString tag+",[])"
-      | outBlock tag (arg::[]) = (out "new Constructor("+Int.toString tag+",["; emit arg; out "])")
-      | outBlock tag args = (out "new Constructor("+Int.toString tag+",["; outList args; out "])")
-    
-    and outList [] = ()
-      | outList (s::[]) = emit s
-      | outList (s::ss) = (emit s; out ","; outList ss) *)
+        (out ("Constructor("^(Int.toString tag)^",["); emit arg; map (fn x => (out ", "; emit x)) args; out "])")
   ;
 
   fun emitPhrase os (ajs : JSInstruction) =
