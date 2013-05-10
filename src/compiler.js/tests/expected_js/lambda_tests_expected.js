@@ -14,18 +14,18 @@ var Lconst_ATOMsc_CHARscon = "F";
 var Lconst_ATOMsc_REALscon = 15.0;
 var Lconst_ATOMsc_STRINGscon = "fifteen";
 
-var Lconst_BLOCKsc_list = new $_mosmllib.constructor(1, [1, new $_mosmllib.constructor(1, [2, new $_mosmllib.constructor(1, [3, new $_mosmllib.constructor(1, [4, new $_mosmllib.constructor(1, [5, new $_mosmllib.constructor(0, [])])])])])]);
-var Lconst_BLOCKsc_tuple = new $_mosmllib.constructor(0, [1, 2, 3, 4, 5]);
-var Lconst_BLOCKsc_false = new $_mosmllib.constructor(0, []);
-var Lconst_BLOCKsc_true = new $_mosmllib.constructor(1, []);
+var Lconst_BLOCKsc_list = $_mosmllib.Constructor(1, [1, $_mosmllib.Constructor(1, [2, $_mosmllib.Constructor(1, [3, $_mosmllib.Constructor(1, [4, $_mosmllib.Constructor(1, [5, $_mosmllib.Constructor(0)])])])])]);
+var Lconst_BLOCKsc_tuple = $_mosmllib.Constructor(0, [1, 2, 3, 4, 5]);
+var Lconst_BLOCKsc_false = $_mosmllib.Constructor(0);
+var Lconst_BLOCKsc_true = $_mosmllib.Constructor(1);
 
-var Lconst_BLOCKsc_datatype_test = new $_mosmllib.constructor(0, [1, new $_mosmllib.constructor(0, [2, new $_mosmllib.constructor(0, [3, new $_mosmllib.constructor(2, [])])])]);
+var Lconst_BLOCKsc_datatype_test = $_mosmllib.Constructor(0, [1, $_mosmllib.Constructor(0, [2, $_mosmllib.Constructor(0, [3, $_mosmllib.Constructor(2)])])]);
 
 /* Lfn + Lapply */
 var Lfn_normal = function(xy) {
     return xy.args[0] + 1 + xy.args[1];
 };
-var Lapply_normal = Lfn_normal(new $_mosmllib.constructor(0, [1, 2]));
+var Lapply_normal = Lfn_normal($_mosmllib.Constructor(0, [1, 2]));
 
 var Lfn_curried = function(x) {
     return function(y) {
@@ -57,6 +57,7 @@ var Lletrec_test2 = function(y) {
 var Lletrec_test3 = Lletrec_test2(2) === 2;
 
 /* Lprim */
+/* TODO: Lprim */
 
 /* Lhandle */
 /* TODO: Lhandle */
@@ -91,16 +92,16 @@ var Lcase_not_exhaustive = function(var0) {
 
 /* Lif */
 var Lif_a = 63;
-var Lif_b = if Lif_a === 63 {10} else {20};
-var Lif_c = if Lif_b === 20 {"a"} else {"b"};
+var Lif_b = if Lif_a === 63 ? 10 : 20;
+var Lif_c = if Lif_b === 20 ? "a" : "b";
 
-var Lif_d = new $_mosmllib.constructor(0, []);
-var Lif_d = new $_mosmllib.constructor(1, []);
-var Lif_e = if Lif_d.tag {1} else {2};
-var Lif_f = if !Lif_d.tag {1} else {2};
+var Lif_d = $_mosmllib.Constructor(0);
+var Lif_d = $_mosmllib.Constructor(1);
+var Lif_e = Lif_d.tag ? 1 : 2;
+var Lif_f = !Lif_d.tag ? 1 : 2;
 
 var Lif_test = function(x) {
-    return if x > 0 {1} else {2};
+    return x > 0 ? 1 : 2;
 };
 
 /* Lseq */
@@ -110,8 +111,8 @@ var Lif_test = function(x) {
 var Lwhile_infinite = while(true) {1};
 
 /* Landsalso + Lorelse */
-var Landsalso_test = (new $_mosmllib.constructor(1, []).tag && new $_mosmllib.constructor(0, []).tag) === new $_mosmllib.constructor(0, []).tag;
-var Lorelse_test = (new $_mosmllib.constructor(0, []).tag || new $_mosmllib.constructor(1, []).tag) === new $_mosmllib.constructor(1, []).tag;
+var Landsalso_test = ($_mosmllib.Constructor(1).tag && $_mosmllib.Constructor(0).tag) === $_mosmllib.Constructor(0).tag;
+var Lorelse_test = ($_mosmllib.Constructor(0).tag || $_mosmllib.Constructor(1).tag) === $_mosmllib.Constructor(1).tag;
 
 /* Lunspec */
 (function(){var var0 = "Lunspec"})();
