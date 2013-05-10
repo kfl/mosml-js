@@ -58,6 +58,7 @@ in
     | JSSwitch(1, exp, clist, def) => (out "(function(){switch("; emit exp; out ".tag){"; map (fn (lbl, exp') => (out "\ncase "; emit lbl; out ":\nreturn "; emit exp')) clist; out "\ndefault:\nreturn "; emit def; out "\n}}())")
     | JSBlock(tag, args) => outBlock tag args
     | JSGetField (i,qualid) => (out (hd(#id qualid)^".args["^i^"]"))
+    | JSRaise (js) => (out "throw "; emit js)
     | _ => out " Error! "
 
     and emitArgs [] = ()
