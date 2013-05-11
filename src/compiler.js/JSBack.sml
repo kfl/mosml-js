@@ -64,8 +64,8 @@ in
       map (fn (CONtag (tag,span), exp') => (JSConst(JSINTscon (Int.toString tag )), 
       compileJSLambda exp' env)) clist, compileJSLambda def env)
   | Lshared (lref, _) => compileJSLambda (!lref) env
- (* | Lhandle (exp1, (Lif((Ptest(Peq_test), [_, arg2]), exp2, _))) => 
-      JSTryCatch(compileJSLambda exp1 env, compileJSLambda arg2 env, compileJSLambda exp2 env) *)
+  | Lhandle (exp1, (Lif(Lprim(Ptest(Peq_test), [_, arg2]), exp2, _))) => 
+      JSTryCatch(compileJSLambda exp1 env, compileJSLambda arg2 env, compileJSLambda exp2 env)
   | _ => JSError("compileJSLambda") (* else print error *)
 end
 
