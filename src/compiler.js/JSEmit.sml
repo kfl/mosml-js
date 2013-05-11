@@ -74,7 +74,8 @@ in
     | JSRaise(js) => (out "(function(){throw "; emit js; out "}())")
     | JSTryCatch(js1, js2, js3) => 
         (out "try {\n";  emit js1; out "\n} catch (";  emit js2; out "){\n"; emit js3; out "\n}")
-    | _ => out " Error! "
+    | JSError(errmsg) => (out "/*ERROR: "; out errmsg; out "*/")
+    | _ => out "/*ERROR: JSEmit*/"
 
     and emitArgs [] = ()
       | emitArgs (arg::args) = (out "("; emit arg; out ")"; emitArgs args)

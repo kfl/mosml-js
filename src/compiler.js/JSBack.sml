@@ -64,9 +64,9 @@ in
       map (fn (CONtag (tag,span), exp') => (JSConst(JSINTscon (Int.toString tag )), 
       compileJSLambda exp' env)) clist, compileJSLambda def env)
   | Lshared (lref, _) => compileJSLambda (!lref) env
-  | Lhandle (exp1, (Lif(tst, exp2, _))) => 
-      JSTryCatch(compileJSLambda exp1 env, compileJSLambda tst env, compileJSLambda exp2 env)
-  | _ => JSError(0) (* else print error *)
+ (* | Lhandle (exp1, (Lif((Ptest(Peq_test), [_, arg2]), exp2, _))) => 
+      JSTryCatch(compileJSLambda exp1 env, compileJSLambda arg2 env, compileJSLambda exp2 env) *)
+  | _ => JSError("compileJSLambda") (* else print error *)
 end
 
 and compileJSPrim (prim : primitive) args env =
@@ -79,20 +79,22 @@ and compileJSPrim (prim : primitive) args env =
   | (Pccall call, args) => compileCall call args env
   | (Pget_global(uid,_), _ )=> JSGetVar uid
   | (Pset_global(uid,_), [arg]) => JSSetVar (uid, compileJSLambda arg env)
-  | (Pfield(i), [Lvar(j)]) => JSGetField(Int.toString(i),(nth(env,j)))
-  | (Ptest(bool_test), [arg1, arg2]) => (* do not work on lists *)
+  | (Pfield(i), [Lvar(j)]) => (JSGetField(Int.toString(i),(nth(env,j))) handle Subscript => JSError("Pfield"))
+  | (Pfield(i), [Lprim(Pget_global(uid,_),_)]) => (JSGetField(Int.toString(i),uid))
+  | (Ptest(bool_test), [arg1, arg2]) =>
     (case bool_test of
       Pint_test(PTeq)                => JSTest(JSeq, compileJSLambda arg1 env, compileJSLambda arg2 env)
     | Peq_test                       => JSTest(JSeq, compileJSLambda arg1 env, compileJSLambda arg2 env)
     | Pnoteq_test                    => JSTest(JSneq, compileJSLambda arg1 env, compileJSLambda arg2 env)
-    | Pnoteqtag_test(CONtag(tag, _)) => JSTest(JSneqtag(tag), compileJSLambda arg1 env, compileJSLambda arg2 env) (* maybe not to be used, fatal error in back.sml *)
-    | _ => JSError(0)
+    | Pnoteqtag_test(CONtag(tag, _)) => JSTest(JSneqtag(tag), compileJSLambda arg1 env, compileJSLambda arg2 env)
+      (* maybe not to be used, fatal error in back.sml *)
+    | _ => JSError("Ptest")
     )
   | (Pnot, [arg]) => JSNot(compileJSLambda arg env)
   | (Pmakeblock(CONtag(tag,_)),args) => compileBlock tag args env
   | (Praise, [arg]) => JSRaise(compileJSLambda arg env)
-  | (Praise, args) => JSError(0) (* TODO handle more args? Cases? *)
-  | _ => JSError(0) (* else print error *)
+  | (Praise, args) => JSError("Praise") (* TODO handle more args? Cases? *)
+  | _ => JSError("compileJSPrim") (* else print error *)
 
 and compileJSLambdaList [] _ = []
   | compileJSLambdaList (exp::exps) env = (compileJSLambda exp env)::(compileJSLambdaList exps env)
@@ -110,7 +112,7 @@ end
 and compileCall (name, arity) args env =
   case (name, args) of
     ("sml_concat", arg1 :: arg2 :: []) => JSAdd (JSConcat, compileJSLambda arg1 env, compileJSLambda arg2 env)
-  | _ => JSError(0) (* else do nothing *)
+  | _ => JSError("compileCall") (* else do nothing *)
 
 and compileBlock tag list env = 
   JSBlock(tag, map (fn x => compileJSLambda x env) list)
