@@ -76,6 +76,8 @@ fun Lhandle_fun1 (0,0) = raise Lhandle_exception1
 
 fun Lhandle_fun2 x = (Lhandle_fun1 x handle Lhandle_exception1 => 0) handle Lhandle_exception2 (n,m) => m
 
+fun Lhandle_fun3 = let exception Lhandle_exception3 in (raise Lhandle_exception3) end
+
 (* Lstatichandle -> Lcase *)
 fun Lcase_fib_rec 0 = 1
   | Lcase_fib_rec 1 = 1
@@ -128,3 +130,14 @@ val Lorelse_test = (false orelse true) = true
 
 (* Lunspec *)
 val _ = "Lunspec"
+
+(* Lshared *)
+datatype Lshared_datatype = Lshared_A | Lshared_B
+fun Lshared_test x =
+    case x of
+        (Lshared_A,Lshared_A,_,_,_,_,_,_,_,_) => 0
+      | (_,_,Lshared_A,Lshared_A,_,_,_,_,_,_) => 1
+      | (_,_,_,_,Lshared_A,Lshared_A,_,_,_,_) => 2
+      | (_,_,_,_,_,_,Lshared_A,Lshared_A,_,_) => 3
+      | (_,_,_,_,_,_,_,_,Lshared_A,Lshared_A) => 4
+      | (Lshared_A,Lshared_B,Lshared_A,Lshared_B,Lshared_A,Lshared_B,Lshared_A,Lshared_B,Lshared_A,Lshared_B) => ~1
