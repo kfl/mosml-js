@@ -39,7 +39,8 @@ in
     Lapply (func, args) => JSApply(compileJSLambda func env, compileJSLambdaList args env)
   | Lconst scon => compileConst scon
   | Lfn (exp) => JSFun (compileJSLambda exp env', hd(env'))
-  | Lif (tst, exp1, exp2) => JSIf (compileJSLambda tst env, compileJSLambda exp1 env, compileJSLambda exp2 env)
+  | Lif (tst, exp1, exp2) => 
+      JSIf (compileJSLambda tst env, compileJSLambda exp1 env, compileJSLambda exp2 env)
   | Llet ([exp1], exp2) =>
         JSScope (extractLetList exp2 [JSSetVar(hd(env'), compileJSLambda exp1 env)] env')
   | Lletrec ([exp1], exp2) => 
@@ -54,9 +55,17 @@ in
   | Lorelse (exp1, exp2) => JSOr(compileJSLambda exp1 env, compileJSLambda exp2 env)
   | Lwhile (exp, body) => JSWhile(compileJSLambda exp env, compileJSLambda body env)
   | Lunspec => JSUnspec
-  | Lstatichandle (Lcase (exp, clist), def) => JSSwitch(0, compileJSLambda exp env, map (fn (scon,exp') => (compileSCon scon, compileJSLambda exp' env)) clist, compileJSLambda def env)
-  | Lstatichandle (Lswitch (_, exp, clist), def) => JSSwitch(1, compileJSLambda exp env, map (fn (CONtag (tag,span), exp') => (JSConst(JSINTscon (Int.toString tag )), compileJSLambda exp' env)) clist, compileJSLambda def env)
+  | Lstatichandle (Lcase (exp, clist), def) => 
+      JSSwitch(0, compileJSLambda exp env, 
+      map (fn (scon,exp') => (compileSCon scon, compileJSLambda exp' env)) clist, 
+      compileJSLambda def env)
+  | Lstatichandle (Lswitch (_, exp, clist), def) => 
+      JSSwitch(1, compileJSLambda exp env, 
+      map (fn (CONtag (tag,span), exp') => (JSConst(JSINTscon (Int.toString tag )), 
+      compileJSLambda exp' env)) clist, compileJSLambda def env)
   | Lshared (lref, _) => compileJSLambda (!lref) env
+  | Lhandle (exp1, (Lif(tst, exp2, _))) => 
+      JSTryCatch(compileJSLambda exp1 env, compileJSLambda tst env, compileJSLambda exp2 env)
   | _ => JSError(0) (* else print error *)
 end
 

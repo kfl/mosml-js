@@ -43,7 +43,8 @@ in
     | JSScope(jss, js) => 
       (case js of 
         (JSSetVar(qualid, js)) => 
-          (out ("var "^(hd(#id qualid))^" = "); out "(function(){\n"; scopeLoop jss; out "return "; emit js; out ";\n}())")
+          (out ("var "^(hd(#id qualid))^" = "); out "(function(){\n"; 
+           scopeLoop jss; out "return "; emit js; out ";\n}())")
       | _                      => (out "(function(){\n"; scopeLoop jss; out "return "; emit js; out ";\n}())")
       )
     | JSTest(tst, js1, js2) => 
@@ -59,11 +60,19 @@ in
     | JSOr(js1, js2) => (emit js1; out " || "; emit js2)
     | JSWhile(exp, body) => (out "while ("; emit exp; out "){\n"; emit body; out "\n}")
     | JSUnspec => out ""
-    | JSSwitch(0, exp, clist, def) => (out "(function(){switch("; emit exp; out "){"; map (fn (lbl, exp') => (out "\ncase "; emit lbl; out ":\nreturn "; emit exp')) clist; out "\ndefault:\nreturn "; emit def; out "\n}}())")
-    | JSSwitch(1, exp, clist, def) => (out "(function(){switch("; emit exp; out ".tag){"; map (fn (lbl, exp') => (out "\ncase "; emit lbl; out ":\nreturn "; emit exp')) clist; out "\ndefault:\nreturn "; emit def; out "\n}}())")
+    | JSSwitch(0, exp, clist, def) => 
+        (out "(function(){switch("; emit exp; out "){"; 
+         map (fn (lbl, exp') => (out "\ncase "; emit lbl; out ":\nreturn "; 
+         emit exp')) clist; out "\ndefault:\nreturn "; emit def; out "\n}}())")
+    | JSSwitch(1, exp, clist, def) => 
+        (out "(function(){switch("; emit exp; out ".tag){"; 
+         map (fn (lbl, exp') => (out "\ncase "; emit lbl; out ":\nreturn "; 
+         emit exp')) clist; out "\ndefault:\nreturn "; emit def; out "\n}}())")
     | JSBlock(tag, args) => outBlock tag args
-    | JSGetField (i,qualid) => (out (hd(#id qualid)^".args["^i^"]"))
-    | JSRaise (js) => (out "(function(){throw "; emit js; out "}())")
+    | JSGetField(i,qualid) => (out (hd(#id qualid)^".args["^i^"]"))
+    | JSRaise(js) => (out "(function(){throw "; emit js; out "}())")
+    | JSTryCatch(js1, js2, js3) => 
+        (out "try {\n";  emit js1; out "\n}\ncatch (";  emit js2; out "){\n"; emit js3; out "\n}")
     | _ => out " Error! "
 
     and emitArgs [] = ()
@@ -74,7 +83,8 @@ in
 
     and outBlock tag [] = out ("Constructor("^(Int.toString tag)^")")
       | outBlock tag (arg::args) = 
-        (out ("Constructor("^(Int.toString tag)^",["); emit arg; map (fn x => (out ", "; emit x)) args; out "])")
+        (out ("Constructor("^(Int.toString tag)^",["); emit arg; 
+         map (fn x => (out ", "; emit x)) args; out "])")
   ;
 
   fun emitPhrase os (ajs : JSInstruction) =

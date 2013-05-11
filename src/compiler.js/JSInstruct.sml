@@ -33,6 +33,7 @@ datatype JSInstruction =
   | JSSwitch of int * JSInstruction * (JSInstruction * JSInstruction) list * JSInstruction
   | JSBlock of int * JSInstruction list
   | JSRaise of JSInstruction (* TODO might redesign this *)
+  | JSTryCatch of JSInstruction * JSInstruction * JSInstruction
   | JSError of int (* Note: this is just for debugging purposes. *)
 
 and JSOp =
