@@ -49,7 +49,8 @@ in
       )
     | JSTest(tst, js1, js2) => 
       (case tst of
-        JSeq => (out "("; emit js1; out " === "; emit js2; out ")")
+        JSeq          => (out "("; emit js1; out " === "; emit js2; out ")")
+      | JSneq         => (out "("; emit js1; out " !== "; emit js2; out ")")
       | _ => out " Error! "
       )
     | JSNot(js) => (out "!"; emit js)
@@ -72,7 +73,7 @@ in
     | JSGetField(i,qualid) => (out (hd(#id qualid)^".args["^i^"]"))
     | JSRaise(js) => (out "(function(){throw "; emit js; out "}())")
     | JSTryCatch(js1, js2, js3) => 
-        (out "try {\n";  emit js1; out "\n}\ncatch (";  emit js2; out "){\n"; emit js3; out "\n}")
+        (out "try {\n";  emit js1; out "\n} catch (";  emit js2; out "){\n"; emit js3; out "\n}")
     | _ => out " Error! "
 
     and emitArgs [] = ()

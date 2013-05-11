@@ -22,7 +22,7 @@ datatype JSInstruction =
   | JSScope of JSInstruction list * JSInstruction
   | JSIf of JSInstruction * JSInstruction * JSInstruction
   | JSNot of JSInstruction
-  | JSTest of JSPrimTest * JSInstruction * JSInstruction
+  | JSTest of JSTestType * JSInstruction * JSInstruction
   | JSApply of JSInstruction * JSInstruction list
   | JSSeq of JSInstruction * JSInstruction
   | JSSeqFun of JSInstruction * JSInstruction
@@ -39,6 +39,26 @@ datatype JSInstruction =
 and JSOp =
     JSAddInt | JSSubInt | JSMulInt | JSDivInt | JSModInt | JSConcat
 
-and JSPrimTest =
-    JSeq | JSnoteq | JSlt | JSle | JSgt | JSge
+and JSTestType =
+    JSeq | JSneq | JSlt | JSle | JSgt | JSge 
+    | JSneqtag of int (* maybe to be removed *)
 ;
+(*
+and bool_test =
+    Peq_test
+  | Pnoteq_test
+  | Pint_test of int prim_test
+  | Pfloat_test of real prim_test
+  | Pstring_test of string prim_test
+  | Pword_test of word prim_test
+  | Pnoteqtag_test of BlockTag
+
+and 'a prim_test =
+    PTeq
+  | PTnoteq
+  | PTnoteqimm of 'a
+  | PTlt
+  | PTle
+  | PTgt
+  | PTge
+*)

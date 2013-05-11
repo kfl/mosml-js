@@ -82,7 +82,10 @@ and compileJSPrim (prim : primitive) args env =
   | (Pfield(i), [Lvar(j)]) => JSGetField(Int.toString(i),(nth(env,j)))
   | (Ptest(bool_test), [arg1, arg2]) => (* do not work on lists *)
     (case bool_test of
-      Pint_test(PTeq) => JSTest(JSeq, compileJSLambda arg1 env, compileJSLambda arg2 env)
+      Pint_test(PTeq)                => JSTest(JSeq, compileJSLambda arg1 env, compileJSLambda arg2 env)
+    | Peq_test                       => JSTest(JSeq, compileJSLambda arg1 env, compileJSLambda arg2 env)
+    | Pnoteq_test                    => JSTest(JSneq, compileJSLambda arg1 env, compileJSLambda arg2 env)
+    | Pnoteqtag_test(CONtag(tag, _)) => JSTest(JSneqtag(tag), compileJSLambda arg1 env, compileJSLambda arg2 env) (* maybe not to be used, fatal error in back.sml *)
     | _ => JSError(0)
     )
   | (Pnot, [arg]) => JSNot(compileJSLambda arg env)
