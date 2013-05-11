@@ -40,7 +40,12 @@ in
           (out "(function(){ return ("; emit tst; out " ? "; emit js1; out " : "; emit js2; out ")}())")
       )
     | JSSetVar(qualid, js) => (out ("var "^(hd(#id qualid))^" = "); emit js)
-    | JSScope(jss, js) => (out "(function(){\n"; scopeLoop jss; out "return "; emit js; out ";\n}())")
+    | JSScope(jss, js) => 
+      (case js of 
+        (JSSetVar(qualid, js)) => 
+          (out ("var "^(hd(#id qualid))^" = "); out "(function(){\n"; scopeLoop jss; out "return "; emit js; out ";\n}())")
+      | _                      => (out "(function(){\n"; scopeLoop jss; out "return "; emit js; out ";\n}())")
+      )
     | JSTest(tst, js1, js2) => 
       (case tst of
         JSeq => (out "("; emit js1; out " === "; emit js2; out ")")
