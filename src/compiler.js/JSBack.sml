@@ -3,8 +3,8 @@
 open Const Lambda Prim JSInstruct List;
 
 val varCount = ref 0;
-fun updateEnv env = 
-let 
+fun updateEnv env =
+let
   val var = "var_"^Int.toString(!varCount);
   val qualid : QualifiedIdent = {id=[var] , qual=""};
 in
@@ -39,32 +39,32 @@ in
     Lapply (func, args) => JSApply(compileJSLambda func env, compileJSLambdaList args env)
   | Lconst scon => compileConst scon
   | Lfn (exp) => JSFun (compileJSLambda exp env', hd(env'))
-  | Lif (tst, exp1, exp2) => 
+  | Lif (tst, exp1, exp2) =>
       JSIf (compileJSLambda tst env, compileJSLambda exp1 env, compileJSLambda exp2 env)
   | Llet ([exp1], exp2) =>
         JSScope (extractLetList exp2 [JSSetVar(hd(env'), compileJSLambda exp1 env)] env')
-  | Lletrec ([exp1], exp2) => 
+  | Lletrec ([exp1], exp2) =>
         JSScope (extractLetList exp2 [JSSetVar(hd(env'), compileJSLambda exp1 env')] env')
   | Lprim (prim, args) => compileJSPrim prim args env
   | Lvar (i) => JSGetVar(nth(env,i))
-  | Lseq (exp1, exp2) => 
-    (case exp1 of 
+  | Lseq (exp1, exp2) =>
+    (case exp1 of
       (Lprim(Pset_global(_,_),_))=> JSSeqFun(compileJSLambda exp1 env, compileJSLambda exp2 env)
     | _ => JSSeq(compileJSLambda exp1 env, compileJSLambda exp2 env))
   | Landalso (exp1, exp2) => JSAnd(compileJSLambda exp1 env, compileJSLambda exp2 env)
   | Lorelse (exp1, exp2) => JSOr(compileJSLambda exp1 env, compileJSLambda exp2 env)
   | Lwhile (exp, body) => JSWhile(compileJSLambda exp env, compileJSLambda body env)
   | Lunspec => JSUnspec
-  | Lstatichandle (Lcase (exp, clist), def) => 
-      JSSwitch(0, compileJSLambda exp env, 
-      map (fn (scon,exp') => (compileSCon scon, compileJSLambda exp' env)) clist, 
+  | Lstatichandle (Lcase (exp, clist), def) =>
+      JSSwitch(0, compileJSLambda exp env,
+      map (fn (scon,exp') => (compileSCon scon, compileJSLambda exp' env)) clist,
       compileJSLambda def env)
-  | Lstatichandle (Lswitch (_, exp, clist), def) => 
-      JSSwitch(1, compileJSLambda exp env, 
-      map (fn (CONtag (tag,span), exp') => (JSConst(JSINTscon (Int.toString tag )), 
+  | Lstatichandle (Lswitch (_, exp, clist), def) =>
+      JSSwitch(1, compileJSLambda exp env,
+      map (fn (CONtag (tag,span), exp') => (JSConst(JSINTscon (Int.toString tag )),
       compileJSLambda exp' env)) clist, compileJSLambda def env)
   | Lshared (lref, _) => compileJSLambda (!lref) env
-  | Lhandle (exp1, (Lif(Lprim(Ptest(Peq_test), [_, arg2]), exp2, _))) => 
+  | Lhandle (exp1, (Lif(Lprim(Ptest(Peq_test), [_, arg2]), exp2, _))) =>
       JSTryCatch(compileJSLambda exp1 env, compileJSLambda arg2 env, compileJSLambda exp2 env)
   | _ => JSError("compileJSLambda") (* else print error *)
 end
@@ -79,8 +79,8 @@ and compileJSPrim (prim : primitive) args env =
   | (Pccall call, args) => compileCall call args env
   | (Pget_global(uid,_), _ )=> JSGetVar uid
   | (Pset_global(uid,_), [arg]) => JSSetVar (uid, compileJSLambda arg env)
-  | (Pfield(i), [Lvar(j)]) => (JSGetField(Int.toString(i),(nth(env,j))) handle Subscript => JSError("Pfield"))
-  | (Pfield(i), [Lprim(Pget_global(uid,_),_)]) => (JSGetField(Int.toString(i),uid))
+  (*| (Pfield(i), [Lvar(j)]) => (JSGetField(Int.toString(i),(nth(env,j))) handle Subscript => JSError("Pfield"))*)
+  | (Pfield(i), [arg]) => (JSGetField(compileGetField arg [Int.toString(i)] env) handle Subscript => JSError("Pfield"))
   | (Ptest(bool_test), [arg1, arg2]) =>
     (case bool_test of
       Pint_test(PTeq)                => JSTest(JSeq, compileJSLambda arg1 env, compileJSLambda arg2 env)
@@ -114,12 +114,16 @@ and compileCall (name, arity) args env =
     ("sml_concat", arg1 :: arg2 :: []) => JSAdd (JSConcat, compileJSLambda arg1 env, compileJSLambda arg2 env)
   | _ => JSError("compileCall") (* else do nothing *)
 
-and compileBlock tag list env = 
+and compileBlock tag list env =
   JSBlock(tag, map (fn x => compileJSLambda x env) list)
 
-and compileBlocksc tag sclist = 
+and compileBlocksc tag sclist =
   JSBlock(tag, map (fn x => compileConst x) sclist)
 
 and compileConst (ATOMsc(scon)) = compileSCon scon
   | compileConst (BLOCKsc(CONtag(tag,_), args)) = compileBlocksc tag args
+
+and compileGetField (Lprim(Pget_global(uid,_),_)) idxs _ = (idxs, uid)
+  | compileGetField (Lvar(j)) idxs env = (idxs, nth(env,j))
+  | compileGetField (Lprim(Pfield(i),[arg])) idxs env = compileGetField arg (Int.toString(i)::idxs) env
 ;

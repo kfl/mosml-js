@@ -29,25 +29,25 @@ in
     | JSMod(JSModInt, js1, js2) => (out overflowCheck; emit js1; out "%"; emit js2; out ")")
     | JSConst(c) => outConst c
     | JSGetVar qualid => out (hd(#id qualid))
-    | JSFun(JSScope(jss, js), qualid) => 
+    | JSFun(JSScope(jss, js), qualid) =>
         (out ("function("^(hd(#id qualid))^"){\n"); scopeLoop jss; out "return "; emit js; out ";}")
     | JSFun(js, qualid) => (out ("function("^(hd(#id qualid))^")\n{"); out "return "; emit js; out ";}")
-    | JSIf(tst, js1, js2) => 
-      (case tst of 
-        JSTest(_,_,_) => 
+    | JSIf(tst, js1, js2) =>
+      (case tst of
+        JSTest(_,_,_) =>
           (out "(function(){ return ("; emit tst; out " ? "; emit js1; out " : "; emit js2; out ")}())")
-      | _ => 
+      | _ =>
           (out "(function(){ return ("; emit tst; out " ? "; emit js1; out " : "; emit js2; out ")}())")
       )
     | JSSetVar(qualid, js) => (out ("var "^(hd(#id qualid))^" = "); emit js)
-    | JSScope(jss, js) => 
-      (case js of 
-        (JSSetVar(qualid, js)) => 
-          (out ("var "^(hd(#id qualid))^" = "); out "(function(){\n"; 
+    | JSScope(jss, js) =>
+      (case js of
+        (JSSetVar(qualid, js)) =>
+          (out ("var "^(hd(#id qualid))^" = "); out "(function(){\n";
            scopeLoop jss; out "return "; emit js; out ";\n}())")
       | _                      => (out "(function(){\n"; scopeLoop jss; out "return "; emit js; out ";\n}())")
       )
-    | JSTest(tst, js1, js2) => 
+    | JSTest(tst, js1, js2) =>
       (case tst of
         JSeq          => (out "("; emit js1; out " === "; emit js2; out ")")
       | JSneq         => (out "("; emit js1; out " !== "; emit js2; out ")")
@@ -61,19 +61,20 @@ in
     | JSOr(js1, js2) => (emit js1; out " || "; emit js2)
     | JSWhile(exp, body) => (out "while ("; emit exp; out "){\n"; emit body; out "\n}")
     | JSUnspec => out ""
-    | JSSwitch(0, exp, clist, def) => 
-        (out "(function(){switch("; emit exp; out "){"; 
-         map (fn (lbl, exp') => (out "\ncase "; emit lbl; out ":\nreturn "; 
+    | JSSwitch(0, exp, clist, def) =>
+        (out "(function(){switch("; emit exp; out "){";
+         map (fn (lbl, exp') => (out "\ncase "; emit lbl; out ":\nreturn ";
          emit exp')) clist; out "\ndefault:\nreturn "; emit def; out "\n}}())")
-    | JSSwitch(1, exp, clist, def) => 
-        (out "(function(){switch("; emit exp; out ".tag){"; 
-         map (fn (lbl, exp') => (out "\ncase "; emit lbl; out ":\nreturn "; 
+    | JSSwitch(1, exp, clist, def) =>
+        (out "(function(){switch("; emit exp; out ".tag){";
+         map (fn (lbl, exp') => (out "\ncase "; emit lbl; out ":\nreturn ";
          emit exp')) clist; out "\ndefault:\nreturn "; emit def; out "\n}}())")
     | JSBlock(tag, args) => outBlock tag args
-    | JSGetField(i,qualid) => (out (hd(#id qualid)^".args["^i^"]"))
+    | JSGetField(idxs,qualid) =>
+        (out (hd(#id qualid)); app (fn idx => out (".args["^idx^"]")) idxs)
     | JSRaise(js) => (out "(function(){throw "; emit js; out "}())")
-    | JSTryCatch(js1, js2, js3) => 
-        (out "(function(){try {\n";  emit js1; out "\n} catch (e if e.args[0] === ";  
+    | JSTryCatch(js1, js2, js3) =>
+        (out "(function(){try {\n"; emit js1; out "\n} catch (e if e.args[0] === ";
           emit js2; out "){\n return"; emit js3; out "\n}}())")
     | JSError(errmsg) => (out "/*ERROR: "; out errmsg; out "*/")
     | _ => out "/*ERROR: JSEmit*/"
@@ -85,8 +86,8 @@ in
       | scopeLoop (exp::exps) = (emit exp; out ";\n"; scopeLoop exps)
 
     and outBlock tag [] = out ("Constructor("^(Int.toString tag)^")")
-      | outBlock tag (arg::args) = 
-        (out ("Constructor("^(Int.toString tag)^",["); emit arg; 
+      | outBlock tag (arg::args) =
+        (out ("Constructor("^(Int.toString tag)^",["); emit arg;
          map (fn x => (out ", "; emit x)) args; out "])")
   ;
 
