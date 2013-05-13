@@ -38,13 +38,24 @@ in
   case exp of
     Lapply (func, args) => JSApply(compileJSLambda func env, compileJSLambdaList args env)
   | Lconst scon => compileConst scon
-  | Lfn (exp) => JSFun (compileJSLambda exp env', hd(env'))
+  | Lfn (exp) => JSFun(compileJSLambda exp env', hd(env'))
   | Lif (tst, exp1, exp2) =>
       JSIf (compileJSLambda tst env, compileJSLambda exp1 env, compileJSLambda exp2 env)
   | Llet ([exp1], exp2) =>
-        JSScope (extractLetList exp2 [JSSetVar(hd(env'), compileJSLambda exp1 env)] env')
-  | Lletrec ([exp1], exp2) =>
-        JSScope (extractLetList exp2 [JSSetVar(hd(env'), compileJSLambda exp1 env')] env')
+        JSScope(extractLetList exp2 [JSSetVar(hd(env'), compileJSLambda exp1 env)] env')
+  | Lletrec (args, exp2) => 
+      let
+        val l = (length args)
+        fun updEnv 0 e = e
+          | updEnv x e = updEnv (x-1) (updateEnv e)
+        val env'' = updEnv l env
+        
+        fun compileLetrecList [] _ list = list
+          | compileLetrecList (arg::args) n list = compileLetrecList args (n-1) ((JSSetVar(nth(env'', n), compileJSLambda arg env''))::list)
+        val list' = compileLetrecList args (l-1) []
+      in
+        JSScope(extractLetList exp2 list' env'')
+      end
   | Lprim (prim, args) => compileJSPrim prim args env
   | Lvar (i) => JSGetVar(nth(env,i))
   | Lseq (exp1, exp2) =>
@@ -104,7 +115,18 @@ let
 in
   case exp of
     Llet([exp1], exp2) => extractLetList exp2 (JSSetVar(hd(env'), compileJSLambda exp1 env)::list) env'
-  | Lletrec([exp1], exp2) => extractLetList exp2 (JSSetVar(hd(env'), compileJSLambda exp1 env')::list) env'
+  | Lletrec(args, exp2) => 
+    let
+      val l = (length args)
+      fun updEnv 0 e = e
+        | updEnv x e = updEnv (x-1) (updateEnv e)
+      val env'' = updEnv l env
+      fun compileLetrecList [] _ list = list
+        | compileLetrecList (arg::args) n list = compileLetrecList args (n-1) ((JSSetVar(nth(env'', n), compileJSLambda arg env''))::list)
+      val list' = compileLetrecList args (l-1) []
+    in
+      extractLetList exp2 list' env''
+    end
   | _ => (rev list,compileJSLambda exp env)
 end
 
