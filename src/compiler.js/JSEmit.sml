@@ -73,9 +73,9 @@ in
     | JSGetField(idxs,qualid) =>
         (out (hd(#id qualid)); app (fn idx => out (".args["^idx^"]")) idxs)
     | JSRaise(js) => (out "(function(){throw "; emit js; out "}())")
-    | JSTryCatch(js1, js2, js3) =>
-        (out "(function(){try {\n"; emit js1; out "\n} catch (e if e.args[0] === ";
-          emit js2; out "){\n return"; emit js3; out "\n}}())")
+    | JSTryCatch(js1, var, exp1, exp2, js3) =>
+        (out "(function(){try {\nreturn "; emit js1; out "\n} catch ("; emit var; out " if "; emit exp1; out " === ";
+          emit exp2; out "){\n return "; emit js3; out "\n}}())")
     | JSError(errmsg) => (out "/*ERROR: "; out errmsg; out "*/")
     | _ => out "/*ERROR: JSEmit*/"
 

@@ -64,8 +64,8 @@ in
       map (fn (CONtag (tag,span), exp') => (JSConst(JSINTscon (Int.toString tag )),
       compileJSLambda exp' env)) clist, compileJSLambda def env)
   | Lshared (lref, _) => compileJSLambda (!lref) env
-  | Lhandle (exp1, (Lif(Lprim(Ptest(Peq_test), [_, arg2]), exp2, _))) =>
-      JSTryCatch(compileJSLambda exp1 env, compileJSLambda arg2 env, compileJSLambda exp2 env)
+  | Lhandle (exp1, (Lif(Lprim(Ptest(Peq_test), [arg1 as (Lprim(_,[Lvar(j)])), arg2]), exp2, _))) =>
+      JSTryCatch(compileJSLambda exp1 env, JSGetVar(nth(env',j)), compileJSLambda arg1 env', compileJSLambda arg2 env', compileJSLambda exp2 env')
   | _ => JSError("compileJSLambda") (* else print error *)
 end
 
@@ -79,7 +79,6 @@ and compileJSPrim (prim : primitive) args env =
   | (Pccall call, args) => compileCall call args env
   | (Pget_global(uid,_), _ )=> JSGetVar uid
   | (Pset_global(uid,_), [arg]) => JSSetVar (uid, compileJSLambda arg env)
-  (*| (Pfield(i), [Lvar(j)]) => (JSGetField(Int.toString(i),(nth(env,j))) handle Subscript => JSError("Pfield"))*)
   | (Pfield(i), [arg]) => (JSGetField(compileGetField arg [Int.toString(i)] env) handle Subscript => JSError("Pfield"))
   | (Ptest(bool_test), [arg1, arg2]) =>
     (case bool_test of
