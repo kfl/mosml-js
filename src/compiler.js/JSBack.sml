@@ -14,14 +14,32 @@ in
   )
 end;
 
+(* Compile the test operator *)
+val compileTest = fn
+    PTeq    => JSeq
+  | PTnoteq => JSneq
+  | PTlt    => JSlt
+  | PTle    => JSle
+  | PTgt    => JSgt
+  | PTge    => JSge
+
+(* Compile the float operator *)
+val compileFloat = fn
+  (*  Pfloatofint  => 
+  | *) Psmlnegfloat => JSNegFloat
+  | Psmladdfloat => JSAddFloat
+  | Psmlsubfloat => JSSubFloat
+  | Psmlmulfloat => JSMulFloat
+  | Psmldivfloat => JSDivFloat
+
 (* Handle constants of lambda primitives*)
 fun compileSCon scon =
 let
   val const = case scon of
-    INTscon i => JSINTscon (Int.toString i)
+    INTscon i => if i < 0 then JSINTscon ("-"^Int.toString (Int.abs i)) else JSINTscon (Int.toString i)
   | WORDscon w => JSWORDscon (Word.toString w)
   | CHARscon c => JSSTRscon (Char.toString c)
-  | REALscon r => JSREALscon (Real.toString r)
+  | REALscon r => if r < 0.0 then JSREALscon ("-"^Real.toString(Real.abs r)) else JSREALscon (Real.toString r)
   | STRINGscon s => JSSTRscon s
 in
   JSConst(const)
@@ -71,28 +89,31 @@ end
 
 and compileJSPrim (prim : primitive) args env =
   case (prim, args) of
-    (Psmladdint, [arg1, arg2]) => JSAdd (JSAddInt, compileJSLambda arg1 env, compileJSLambda arg2 env)
-  | (Psmlsubint, [arg1, arg2]) => JSSub (JSSubInt, compileJSLambda arg1 env, compileJSLambda arg2 env)
-  | (Psmlmulint, [arg1, arg2]) => JSMul (JSMulInt, compileJSLambda arg1 env, compileJSLambda arg2 env)
-  | (Psmldivint, [arg1, arg2]) => JSDiv (JSDivInt, compileJSLambda arg1 env, compileJSLambda arg2 env)
-  | (Psmlmodint, [arg1, arg2]) => JSMod (JSModInt, compileJSLambda arg1 env, compileJSLambda arg2 env)
+    (Psmladdint, [arg1, arg2]) => JSOperator (JSAddInt, compileJSLambda arg1 env, compileJSLambda arg2 env)
+  | (Psmlsubint, [arg1, arg2]) => JSOperator (JSSubInt, compileJSLambda arg1 env, compileJSLambda arg2 env)
+  | (Psmlmulint, [arg1, arg2]) => JSOperator (JSMulInt, compileJSLambda arg1 env, compileJSLambda arg2 env)
+  | (Psmldivint, [arg1, arg2]) => JSOperator (JSDivInt, compileJSLambda arg1 env, compileJSLambda arg2 env)
+  | (Psmlmodint, [arg1, arg2]) => JSOperator (JSModInt, compileJSLambda arg1 env, compileJSLambda arg2 env)
+  | (Pfloatprim(fprim), [arg1, arg2]) => JSOperator(compileFloat fprim, compileJSLambda arg1 env, compileJSLambda arg2 env)
   | (Pccall call, args) => compileCall call args env
   | (Pget_global(uid,_), _ )=> JSGetVar uid
   | (Pset_global(uid,_), [arg]) => JSSetVar (uid, compileJSLambda arg env)
   | (Pfield(i), [arg]) => (JSGetField(compileGetField arg [Int.toString(i)] env) handle Subscript => JSError("Pfield"))
   | (Ptest(bool_test), [arg1, arg2]) =>
     (case bool_test of
-      Pint_test(PTeq)                => JSTest(JSeq, compileJSLambda arg1 env, compileJSLambda arg2 env)
-    | Peq_test                       => JSTest(JSeq, compileJSLambda arg1 env, compileJSLambda arg2 env)
-    | Pnoteq_test                    => JSTest(JSneq, compileJSLambda arg1 env, compileJSLambda arg2 env)
-    | Pnoteqtag_test(CONtag(tag, _)) => JSTest(JSneqtag(tag), compileJSLambda arg1 env, compileJSLambda arg2 env)
-      (* maybe not to be used, fatal error in back.sml *)
+      Peq_test           => JSTest(JSeq, compileJSLambda arg1 env, compileJSLambda arg2 env)
+    | Pnoteq_test        => JSTest(JSneq, compileJSLambda arg1 env, compileJSLambda arg2 env)
+    | Pint_test(tst)     => JSTest(compileTest tst, compileJSLambda arg1 env, compileJSLambda arg2 env)
+    | Pfloat_test(tst)   => JSTest(compileTest tst, compileJSLambda arg1 env, compileJSLambda arg2 env)
+    | Pstring_test(tst)  => JSTest(compileTest tst, compileJSLambda arg1 env, compileJSLambda arg2 env)
+    | Pword_test(tst)    => JSTest(compileTest tst, compileJSLambda arg1 env, compileJSLambda arg2 env)
     | _ => JSError("Ptest")
     )
   | (Pnot, [arg]) => JSNot(compileJSLambda arg env)
   | (Pmakeblock(CONtag(tag,_)),args) => compileBlock tag args env
   | (Praise, [arg]) => JSRaise(compileJSLambda arg env)
-  | (Praise, args) => JSError("Praise") (* TODO handle more args? Cases? *)
+  | (Psetfield(i), args) => JSError("Psetfield of "^Int.toString(i))
+  | (Psmlnegint, args) => JSError("Psmlnegint")
   | _ => JSError("compileJSPrim") (* else print error *)
 
 and compileJSLambdaList [] _ = []
@@ -121,7 +142,7 @@ end
 
 and compileCall (name, arity) args env =
   case (name, args) of
-    ("sml_concat", arg1 :: arg2 :: []) => JSAdd (JSConcat, compileJSLambda arg1 env, compileJSLambda arg2 env)
+    ("sml_concat", arg1 :: arg2 :: []) => JSOperator (JSConcat, compileJSLambda arg1 env, compileJSLambda arg2 env)
   | _ => JSError("compileCall") (* else do nothing *)
 
 and compileBlock tag list env =

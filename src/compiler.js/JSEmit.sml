@@ -21,13 +21,22 @@ in
   (*Emit the given phrase in abstract js language defined in JSInstruct.sml.*)
   fun emit jsinstr =
     case jsinstr of
-      JSAdd(JSConcat, js1, js2) => (emit js1; out "+"; emit js2)
-    | JSAdd(JSAddInt, js1, js2) => (out overflowCheck; emit js1; out "+"; emit js2; out ")")
-    | JSSub(JSSubInt, js1, js2) => (out overflowCheck; emit js1; out "-"; emit js2; out ")")
-    | JSMul(JSMulInt, js1, js2) => (out overflowCheck; emit js1; out "*"; emit js2; out ")")
-    | JSDiv(JSDivInt, js1, js2) => (out overflowCheck; out "division("; emit js1; out ","; emit js2; out "))")
-    | JSMod(JSModInt, js1, js2) => (out overflowCheck; emit js1; out "%"; emit js2; out ")")
-    | JSConst(c) => outConst c
+      JSOperator(op1, js1, js2) => 
+        (case op1 of 
+          JSConcat => (emit js1; out "+"; emit js2)
+        | JSAddInt => (out overflowCheck; emit js1; out "+"; emit js2; out ")")
+        | JSSubInt => (out overflowCheck; emit js1; out "-"; emit js2; out ")")
+        | JSMulInt => (out overflowCheck; emit js1; out "*"; emit js2; out ")")
+        | JSDivInt => (out overflowCheck; out "division("; emit js1; out ","; emit js2; out "))")
+        | JSModInt => (out overflowCheck; emit js1; out "%"; emit js2; out ")")
+      (*  | JSNegFloat =>  *)
+        | JSAddFloat => (emit js1; out "+"; emit js2)
+        | JSSubFloat => (emit js1; out "-"; emit js2)
+        | JSMulFloat => (emit js1; out "*"; emit js2)
+        | JSDivFloat => (out "division("; emit js1; out ","; emit js2; out ")")
+        | _ => out "/*ERROR: JSOperator*/"
+        )
+    | JSConst c => outConst c
     | JSGetVar qualid => out (hd(#id qualid))
     | JSFun(JSScope(jss, js), qualid) =>
         (out ("function("^(hd(#id qualid))^"){\n"); scopeLoop jss; out "return "; emit js; out ";}")
@@ -51,7 +60,10 @@ in
       (case tst of
         JSeq          => (out "("; emit js1; out " === "; emit js2; out ")")
       | JSneq         => (out "("; emit js1; out " !== "; emit js2; out ")")
-      | _ => out " Error! "
+      | JSlt          => (out "("; emit js1; out " < "; emit js2; out ")")
+      | JSle          => (out "("; emit js1; out " <= "; emit js2; out ")")
+      | JSgt          => (out "("; emit js1; out " > "; emit js2; out ")")
+      | JSge          => (out "("; emit js1; out " >= "; emit js2; out ")")
       )
     | JSNot(js) => (out "!"; emit js)
     | JSApply(func, args) => (emit func; emitArgs args)

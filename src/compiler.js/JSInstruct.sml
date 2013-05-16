@@ -13,11 +13,7 @@ datatype JSInstruction =
   | JSGetField of string list * QualifiedIdent
   | JSSetVar of QualifiedIdent * JSInstruction
   | JSConst of JSConstant
-  | JSAdd of JSOp * JSInstruction * JSInstruction
-  | JSSub of JSOp * JSInstruction * JSInstruction
-  | JSMul of JSOp * JSInstruction * JSInstruction
-  | JSDiv of JSOp * JSInstruction * JSInstruction
-  | JSMod of JSOp * JSInstruction * JSInstruction
+  | JSOperator of JSOp * JSInstruction * JSInstruction
   | JSFun of JSInstruction * QualifiedIdent
   | JSScope of JSInstruction list * JSInstruction
   | JSIf of JSInstruction * JSInstruction * JSInstruction
@@ -38,10 +34,10 @@ datatype JSInstruction =
 
 and JSOp =
     JSAddInt | JSSubInt | JSMulInt | JSDivInt | JSModInt | JSConcat
+  | JSAddFloat | JSSubFloat | JSMulFloat | JSDivFloat | JSNegFloat (* JSNegFloat should be removed? *)
 
 and JSTestType =
     JSeq | JSneq | JSlt | JSle | JSgt | JSge
-    | JSneqtag of int (* maybe to be removed *)
 ;
 (*
 and bool_test =
