@@ -17,6 +17,7 @@ in
   ;
 
   val overflowCheck = if arch = 63 then "overflowCheck64(" else "overflowCheck32(";
+  val wordJSToSml = if arch = 63 then "wordJSToSml64(" else "wordJSToSml32(";
 
   (*Emit the given phrase in abstract js language defined in JSInstruct.sml.*)
   fun emit jsinstr =
@@ -27,13 +28,17 @@ in
         | JSAddInt => (out overflowCheck; emit js1; out "+"; emit js2; out ")")
         | JSSubInt => (out overflowCheck; emit js1; out "-"; emit js2; out ")")
         | JSMulInt => (out overflowCheck; emit js1; out "*"; emit js2; out ")")
-        | JSDivInt => (out overflowCheck; out "division("; emit js1; out ","; emit js2; out "))")
+        | JSDivInt => (out overflowCheck; out "divInt("; emit js1; out ","; emit js2; out "))")
         | JSModInt => (out overflowCheck; emit js1; out "%"; emit js2; out ")")
-      (*  | JSNegFloat =>  *)
         | JSAddFloat => (emit js1; out "+"; emit js2)
         | JSSubFloat => (emit js1; out "-"; emit js2)
         | JSMulFloat => (emit js1; out "*"; emit js2)
         | JSDivFloat => (out "division("; emit js1; out ","; emit js2; out ")")
+        | JSAddWord => (out wordJSToSml; out "wordSmlToJS("; emit js1; out ") + wordSmlToJS("; emit js2; out "))")
+        | JSSubWord => (out wordJSToSml; out "wordSmlToJS("; emit js1; out ") - wordSmlToJS("; emit js2; out "))")
+        | JSMulWord => (out wordJSToSml; out "wordSmlToJS("; emit js1; out ") * wordSmlToJS("; emit js2; out "))")
+        | JSDivWord => (out wordJSToSml; out "wordSmlToJS("; emit js1; out ") divInt(wordSmlToJS("; emit js2; out ")))")
+        | JSModWord => (out wordJSToSml; out "wordSmlToJS("; emit js1; out ") % wordSmlToJS("; emit js2; out "))")
         | _ => out "/*ERROR: JSOperator*/"
         )
     | JSConst c => outConst c

@@ -34,7 +34,8 @@ datatype JSInstruction =
 
 and JSOp =
     JSAddInt | JSSubInt | JSMulInt | JSDivInt | JSModInt | JSConcat
-  | JSAddFloat | JSSubFloat | JSMulFloat | JSDivFloat | JSNegFloat (* JSNegFloat should be removed? *)
+  | JSAddFloat | JSSubFloat | JSMulFloat | JSDivFloat
+  | JSAddWord | JSSubWord | JSMulWord | JSDivWord | JSModWord | JSAndWord
 
 and JSTestType =
     JSeq | JSneq | JSlt | JSle | JSgt | JSge

@@ -2,6 +2,7 @@
 
 open Const Lambda Prim JSInstruct List;
 
+(* Update the environment of the debruijn-index *)
 val varCount = ref 0;
 fun updateEnv env =
 let
@@ -25,9 +26,7 @@ val compileTest = fn
 
 (* Compile the float operator *)
 val compileFloat = fn
-  (*  Pfloatofint  => 
-  | *) Psmlnegfloat => JSNegFloat
-  | Psmladdfloat => JSAddFloat
+    Psmladdfloat => JSAddFloat
   | Psmlsubfloat => JSSubFloat
   | Psmlmulfloat => JSMulFloat
   | Psmldivfloat => JSDivFloat
@@ -37,7 +36,7 @@ fun compileSCon scon =
 let
   val const = case scon of
     INTscon i => if i < 0 then JSINTscon ("-"^Int.toString (Int.abs i)) else JSINTscon (Int.toString i)
-  | WORDscon w => JSWORDscon (Word.toString w)
+  | WORDscon w => JSWORDscon ("0wx"^Word.toString w)
   | CHARscon c => JSSTRscon (Char.toString c)
   | REALscon r => if r < 0.0 then JSREALscon ("-"^Real.toString(Real.abs r)) else JSREALscon (Real.toString r)
   | STRINGscon s => JSSTRscon s
@@ -94,6 +93,12 @@ and compileJSPrim (prim : primitive) args env =
   | (Psmlmulint, [arg1, arg2]) => JSOperator (JSMulInt, compileJSLambda arg1 env, compileJSLambda arg2 env)
   | (Psmldivint, [arg1, arg2]) => JSOperator (JSDivInt, compileJSLambda arg1 env, compileJSLambda arg2 env)
   | (Psmlmodint, [arg1, arg2]) => JSOperator (JSModInt, compileJSLambda arg1 env, compileJSLambda arg2 env)
+  | (Paddint, [arg1, arg2])    => JSOperator (JSAddWord, compileJSLambda arg1 env, compileJSLambda arg2 env)
+  | (Psubint, [arg1, arg2])    => JSOperator (JSSubWord, compileJSLambda arg1 env, compileJSLambda arg2 env)
+  | (Pmulint, [arg1, arg2])    => JSOperator (JSMulWord, compileJSLambda arg1 env, compileJSLambda arg2 env)
+  | (Pdivint, [arg1, arg2])    => JSOperator (JSDivWord, compileJSLambda arg1 env, compileJSLambda arg2 env)
+  | (Pmodint, [arg1, arg2])    => JSOperator (JSModWord, compileJSLambda arg1 env, compileJSLambda arg2 env)
+  | (Pandint, [arg1, arg2])    => JSOperator (JSAndWord, compileJSLambda arg1 env, compileJSLambda arg2 env)
   | (Pfloatprim(fprim), [arg1, arg2]) => JSOperator(compileFloat fprim, compileJSLambda arg1 env, compileJSLambda arg2 env)
   | (Pccall call, args) => compileCall call args env
   | (Pget_global(uid,_), _ )=> JSGetVar uid
