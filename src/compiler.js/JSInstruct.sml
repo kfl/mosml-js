@@ -11,9 +11,10 @@ datatype JSConstant =
 datatype JSInstruction =
     JSGetVar of QualifiedIdent
   | JSGetField of string list * QualifiedIdent
-  | JSSetVar of QualifiedIdent * JSInstruction
+  | JSSetField of int * JSInstruction * JSInstruction
+  | JSSetVar of QualifiedIdent * JSInstruction 
   | JSConst of JSConstant
-  | JSOperator of JSOp * JSInstruction * JSInstruction
+  | JSOperator of JSOp * JSInstruction list
   | JSFun of JSInstruction * QualifiedIdent
   | JSScope of JSInstruction list * JSInstruction
   | JSIf of JSInstruction * JSInstruction * JSInstruction
@@ -36,7 +37,8 @@ and JSOp =
     JSAddInt | JSSubInt | JSMulInt | JSDivInt | JSModInt | JSConcat
   | JSAddFloat | JSSubFloat | JSMulFloat | JSDivFloat
   | JSAddWord | JSSubWord | JSMulWord | JSDivWord | JSModWord | JSAndWord
-
+  | JSNegNum
+  
 and JSTestType =
     JSeq | JSneq | JSlt | JSle | JSgt | JSge
 ;

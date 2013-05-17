@@ -88,18 +88,22 @@ end
 
 and compileJSPrim (prim : primitive) args env =
   case (prim, args) of
-    (Psmladdint, [arg1, arg2]) => JSOperator (JSAddInt, compileJSLambda arg1 env, compileJSLambda arg2 env)
-  | (Psmlsubint, [arg1, arg2]) => JSOperator (JSSubInt, compileJSLambda arg1 env, compileJSLambda arg2 env)
-  | (Psmlmulint, [arg1, arg2]) => JSOperator (JSMulInt, compileJSLambda arg1 env, compileJSLambda arg2 env)
-  | (Psmldivint, [arg1, arg2]) => JSOperator (JSDivInt, compileJSLambda arg1 env, compileJSLambda arg2 env)
-  | (Psmlmodint, [arg1, arg2]) => JSOperator (JSModInt, compileJSLambda arg1 env, compileJSLambda arg2 env)
-  | (Paddint, [arg1, arg2])    => JSOperator (JSAddWord, compileJSLambda arg1 env, compileJSLambda arg2 env)
-  | (Psubint, [arg1, arg2])    => JSOperator (JSSubWord, compileJSLambda arg1 env, compileJSLambda arg2 env)
-  | (Pmulint, [arg1, arg2])    => JSOperator (JSMulWord, compileJSLambda arg1 env, compileJSLambda arg2 env)
-  | (Pdivint, [arg1, arg2])    => JSOperator (JSDivWord, compileJSLambda arg1 env, compileJSLambda arg2 env)
-  | (Pmodint, [arg1, arg2])    => JSOperator (JSModWord, compileJSLambda arg1 env, compileJSLambda arg2 env)
-  | (Pandint, [arg1, arg2])    => JSOperator (JSAndWord, compileJSLambda arg1 env, compileJSLambda arg2 env)
-  | (Pfloatprim(fprim), [arg1, arg2]) => JSOperator(compileFloat fprim, compileJSLambda arg1 env, compileJSLambda arg2 env)
+    (Psmlnegint, [arg])        => JSOperator(JSNegNum, [compileJSLambda arg env])
+  | (Psmladdint, [arg1, arg2]) => JSOperator (JSAddInt, [compileJSLambda arg1 env, compileJSLambda arg2 env])
+  | (Psmlsubint, [arg1, arg2]) => JSOperator (JSSubInt, [compileJSLambda arg1 env, compileJSLambda arg2 env])
+  | (Psmlmulint, [arg1, arg2]) => JSOperator (JSMulInt, [compileJSLambda arg1 env, compileJSLambda arg2 env])
+  | (Psmldivint, [arg1, arg2]) => JSOperator (JSDivInt, [compileJSLambda arg1 env, compileJSLambda arg2 env])
+  | (Psmlmodint, [arg1, arg2]) => JSOperator (JSModInt, [compileJSLambda arg1 env, compileJSLambda arg2 env])
+  | (Paddint, [arg1, arg2])    => JSOperator (JSAddWord, [compileJSLambda arg1 env, compileJSLambda arg2 env])
+  | (Psubint, [arg1, arg2])    => JSOperator (JSSubWord, [compileJSLambda arg1 env, compileJSLambda arg2 env])
+  | (Pmulint, [arg1, arg2])    => JSOperator (JSMulWord, [compileJSLambda arg1 env, compileJSLambda arg2 env])
+  | (Pdivint, [arg1, arg2])    => JSOperator (JSDivWord, [compileJSLambda arg1 env, compileJSLambda arg2 env])
+  | (Pmodint, [arg1, arg2])    => JSOperator (JSModWord, [compileJSLambda arg1 env, compileJSLambda arg2 env])
+  | (Pandint, [arg1, arg2])    => JSOperator (JSAndWord, [compileJSLambda arg1 env, compileJSLambda arg2 env])
+  | (Pfloatprim(Psmlnegfloat), [arg]) => JSOperator(JSNegNum, [compileJSLambda arg env])
+  | (Pfloatprim(Pfloatofint), [arg]) => compileJSLambda arg env
+  | (Pfloatprim(fprim), [arg1, arg2]) =>
+      JSOperator(compileFloat fprim, [compileJSLambda arg1 env, compileJSLambda arg2 env])
   | (Pccall call, args) => compileCall call args env
   | (Pget_global(uid,_), _ )=> JSGetVar uid
   | (Pset_global(uid,_), [arg]) => JSSetVar (uid, compileJSLambda arg env)
@@ -117,8 +121,8 @@ and compileJSPrim (prim : primitive) args env =
   | (Pnot, [arg]) => JSNot(compileJSLambda arg env)
   | (Pmakeblock(CONtag(tag,_)),args) => compileBlock tag args env
   | (Praise, [arg]) => JSRaise(compileJSLambda arg env)
-  | (Psetfield(i), args) => JSError("Psetfield of "^Int.toString(i))
-  | (Psmlnegint, args) => JSError("Psmlnegint")
+  | (Psetfield(i), [arg1, arg2]) => JSSetField(i, compileJSLambda arg1 env, compileJSLambda arg2 env)
+  | (Pintoffloat, [arg]) => compileJSLambda arg env
   | _ => JSError("compileJSPrim") (* else print error *)
 
 and compileJSLambdaList [] _ = []
@@ -147,7 +151,7 @@ end
 
 and compileCall (name, arity) args env =
   case (name, args) of
-    ("sml_concat", arg1 :: arg2 :: []) => JSOperator (JSConcat, compileJSLambda arg1 env, compileJSLambda arg2 env)
+    ("sml_concat", arg1 :: arg2 :: []) => JSOperator (JSConcat, [compileJSLambda arg1 env, compileJSLambda arg2 env])
   | _ => JSError("compileCall") (* else do nothing *)
 
 and compileBlock tag list env =

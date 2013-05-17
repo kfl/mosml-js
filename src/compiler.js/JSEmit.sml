@@ -22,7 +22,8 @@ in
   (*Emit the given phrase in abstract js language defined in JSInstruct.sml.*)
   fun emit jsinstr =
     case jsinstr of
-      JSOperator(op1, js1, js2) => 
+      JSOperator(JSNegNum, [js]) => (out "-"; emit js)
+    | JSOperator(op1, [js1, js2]) => 
         (case op1 of 
           JSConcat => (emit js1; out "+"; emit js2)
         | JSAddInt => (out overflowCheck; emit js1; out "+"; emit js2; out ")")
@@ -53,6 +54,8 @@ in
       | _ =>
           (out "(function(){ return ("; emit tst; out " ? "; emit js1; out " : "; emit js2; out ")}())")
       )
+    | JSSetField(i, js1, js2) => 
+          (out "(function(){"; emit js1; out ".args["; out (Int.toString i); out "] = "; emit js2; out "}())")
     | JSSetVar(qualid, js) => (out ("var "^(hd(#id qualid))^" = "); emit js)
     | JSScope(jss, js) =>
       (case js of
@@ -102,9 +105,9 @@ in
     and scopeLoop [] = ()
       | scopeLoop (exp::exps) = (emit exp; out ";\n"; scopeLoop exps)
 
-    and outBlock tag [] = out ("Constructor("^(Int.toString tag)^")")
+    and outBlock tag [] = (out "Constructor("; out (Int.toString tag); out ")")
       | outBlock tag (arg::args) =
-        (out ("Constructor("^(Int.toString tag)^",["); emit arg;
+        (out "Constructor("; out (Int.toString tag); out ",["; emit arg;
          map (fn x => (out ", "; emit x)) args; out "])")
   ;
 
