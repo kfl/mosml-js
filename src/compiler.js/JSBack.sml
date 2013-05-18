@@ -6,7 +6,7 @@ open Const Lambda Prim JSInstruct List;
 val varCount = ref 0;
 fun updateEnv env =
 let
-  val var = "var_"^Int.toString(!varCount);
+  val var = "$_var"^Int.toString(!varCount);
   val qualid : QualifiedIdent = {id=[var] , qual=""};
 in
   (
@@ -61,7 +61,7 @@ in
   | Llet (args, exp2) =>
       JSScope(extractLetList exp [] env)
   | Llet (args, exp2) => JSError("Llet")
-  | Lletrec (args, exp2) => 
+  | Lletrec (args, exp2) =>
       JSScope(extractLetList exp [] env)
   | Lprim (prim, args) => compileJSPrim prim args env
   | Lvar (i) => JSGetVar(nth(env,i))
@@ -132,14 +132,14 @@ and compileJSLambdaList [] _ = []
 and extractLetList exp list env =
 let
   val env' = updateEnv env
-  fun compileLetList args = 
+  fun compileLetList args =
     let
       val l = (length args)
       fun updEnv 0 e = e
         | updEnv x e = updEnv (x-1) (updateEnv e)
       val env'' = updEnv l env
       fun compileList [] _ list = list
-        | compileList (arg::args) n list = 
+        | compileList (arg::args) n list =
             compileList args (n-1) ((JSSetVar(nth(env'', n), compileJSLambda arg env''))::list)
       val list' = compileList args (l-1) []
     in
@@ -147,9 +147,9 @@ let
     end
 in
   case exp of
-    Llet(args, exp2) => 
+    Llet(args, exp2) =>
       let val (list',env'') = (compileLetList args) in extractLetList exp2 (list'@list) env'' end
-  | Lletrec(args, exp2) => 
+  | Lletrec(args, exp2) =>
       let val (list',env'') = (compileLetList args) in extractLetList exp2 (list'@list) env'' end
   | _ => (rev list,compileJSLambda exp env)
 end
