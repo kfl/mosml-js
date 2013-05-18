@@ -58,8 +58,9 @@ in
   | Lfn (exp) => JSFun(compileJSLambda exp env', hd(env'))
   | Lif (tst, exp1, exp2) =>
       JSIf (compileJSLambda tst env, compileJSLambda exp1 env, compileJSLambda exp2 env)
-  | Llet ([exp1], exp2) =>
+  | Llet (args, exp2) =>
       JSScope(extractLetList exp [] env)
+  | Llet (args, exp2) => JSError("Llet")
   | Lletrec (args, exp2) => 
       JSScope(extractLetList exp [] env)
   | Lprim (prim, args) => compileJSPrim prim args env
@@ -131,21 +132,25 @@ and compileJSLambdaList [] _ = []
 and extractLetList exp list env =
 let
   val env' = updateEnv env
-in
-  case exp of
-    Llet([exp1], exp2) => extractLetList exp2 (JSSetVar(hd(env'), compileJSLambda exp1 env)::list) env'
-  | Lletrec(args, exp2) => 
+  fun compileLetList args = 
     let
       val l = (length args)
       fun updEnv 0 e = e
         | updEnv x e = updEnv (x-1) (updateEnv e)
       val env'' = updEnv l env
-      fun compileLetrecList [] _ list = list
-        | compileLetrecList (arg::args) n list = compileLetrecList args (n-1) ((JSSetVar(nth(env'', n), compileJSLambda arg env''))::list)
-      val list' = compileLetrecList args (l-1) []
+      fun compileList [] _ list = list
+        | compileList (arg::args) n list = 
+            compileList args (n-1) ((JSSetVar(nth(env'', n), compileJSLambda arg env''))::list)
+      val list' = compileList args (l-1) []
     in
-      extractLetList exp2 (list'@list) env''
+      (list',env'')
     end
+in
+  case exp of
+    Llet(args, exp2) => 
+      let val (list',env'') = (compileLetList args) in extractLetList exp2 (list'@list) env'' end
+  | Lletrec(args, exp2) => 
+      let val (list',env'') = (compileLetList args) in extractLetList exp2 (list'@list) env'' end
   | _ => (rev list,compileJSLambda exp env)
 end
 
