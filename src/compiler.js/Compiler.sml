@@ -416,12 +416,12 @@ fun compLamPhrase jsos os state (RE, lams) =
 (
   app
     (fn (is_pure, lam) => (
-       if !printLambda then (msgIBlock 0; Pr_lam.printLam lam; msgEOL(); msgEBlock())
-       else ();
-       if !printJavascript then (msgIBlock 0; Pr_JS.printJSLam lam; msgString ";"; msgEOL(); msgEBlock())
-       else ();
-       emitPhrase jsos let val ajs = compileJSLambda lam [] in ajs end;
-       emit_phrase os let val zam = Back.compileLambda is_pure lam in zam end))
+      if !printLambda then (msgIBlock 0; Pr_lam.printLam lam; msgEOL(); msgEBlock())
+      else ();
+      if !printJavascript then (msgIBlock 0; Pr_JS.printJSLam lam; msgString ";"; msgEOL(); msgEBlock())
+      else ();
+      emitPhrase jsos let val ajs = compileJSLambda lam [] in ajs end;
+      emit_phrase os let val zam = Back.compileLambda is_pure lam in zam end))
     lams;
     updateCurrentCompState (state, RE)
 );
@@ -456,8 +456,11 @@ fun compileAndEmit context uname uident umode filename specSig_opt elab decs =
     val () = resetTypes();
     val os = open_out_bin filename_uo
     val jsos = TextIO.openOut filename_js
+    val jstop = "\"use strict\"\n"
   in
-    ( start_emit_phrase os;
+    ( TextIO.output (jsos, jstop);
+      TextIO.flushOut jsos;
+      start_emit_phrase os;
       app (compileImplPhrase jsos os elab) decs;
       (case umode of
    STRmode =>
