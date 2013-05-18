@@ -65,8 +65,23 @@ in
     | JSScope(jss, js) =>
       (case js of
         (JSSetVar(qualid, js)) =>
-          (out "var "; out (hd(#id qualid)); out " = ");
-	   outAnon (fn _ => (out "\n"; scopeLoop jss; out "return "; emit js; out ";\n")))
+          (out "var "; out (hd(#id qualid)); out " = ";
+	         outAnon (fn _ => (out "\n"; scopeLoop jss; out "return "; emit js; out ";\n")))
+      | (JSSeqFun(js1 as JSSetVar(_, _), js2)) => 
+        let
+          fun evalVars (js1, js2) s l = 
+            case (js1,js2) of
+              (JSSetVar(qualid1, js1), JSSetVar(qualid2, js2)) => 
+                (String.extract(s^","^(hd(#id qualid1))^","^(hd(#id qualid2)),1,NONE),
+                 rev(js2::js1::l))
+            | (JSSetVar(qualid, js1), JSSeqFun(js2, js3))      =>
+                evalVars (js2, js3) (s^","^(hd(#id qualid))) (js1::l)
+          val (vars, vals) = evalVars (js1, js2) "" []
+          fun outVals (js::[])  = emit js
+            | outVals (js::jss) = (emit js; out ","; outVals jss)
+        in
+          (out "var ["; out vars; out "] = "; outAnon (fn _ => (out "\n"; scopeLoop jss; out "return ["; outVals vals; out "];\n")))
+        end
       | _ => outAnon (fn _ => (out "\n"; scopeLoop jss; out "return "; emit js; out ";\n"))
       )
     | JSTest(tst, js1, js2) =>
