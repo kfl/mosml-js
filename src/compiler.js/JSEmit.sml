@@ -2,6 +2,13 @@ local
   open JSInstruct Const TextIO List;
   val outstream = ref stdOut;
   val arch = Option.valOf(Int.precision);
+  val jslib = "$_mosmllib."
+  val overflowCheck = if arch = 63 then jslib^"overflowCheck64(" else jslib^"overflowCheck32(";
+  val wordJSToSml = if arch = 63 then jslib^"wordJSToSml64(" else jslib^"wordJSToSml32(";
+  val wordSmlToJS = jslib^"wordSmlToJS("
+  val Constructor = jslib^"Constructor("
+  val divInt = jslib^"divInt("
+  val division = jslib^"division("
 in
 
   fun out (s : string) =
@@ -16,8 +23,6 @@ in
     | JSSTRscon s => out ("\""^s^"\"")
   ;
 
-  val overflowCheck = if arch = 63 then "overflowCheck64(" else "overflowCheck32(";
-  val wordJSToSml = if arch = 63 then "wordJSToSml64(" else "wordJSToSml32(";
 
   (*Emit the given phrase in abstract js language defined in JSInstruct.sml.*)
   fun emit jsinstr =
@@ -29,40 +34,40 @@ in
         | JSAddInt => (out overflowCheck; emit js1; out "+"; emit js2; out ")")
         | JSSubInt => (out overflowCheck; emit js1; out "-"; emit js2; out ")")
         | JSMulInt => (out overflowCheck; emit js1; out "*"; emit js2; out ")")
-        | JSDivInt => (out overflowCheck; out "divInt("; emit js1; out ","; emit js2; out "))")
+        | JSDivInt => (out overflowCheck; out divInt; emit js1; out ","; emit js2; out "))")
         | JSModInt => (out overflowCheck; emit js1; out "%"; emit js2; out ")")
         | JSAddFloat => (emit js1; out "+"; emit js2)
         | JSSubFloat => (emit js1; out "-"; emit js2)
         | JSMulFloat => (emit js1; out "*"; emit js2)
-        | JSDivFloat => (out "division("; emit js1; out ","; emit js2; out ")")
-        | JSAddWord => (out wordJSToSml; out "wordSmlToJS("; emit js1; out ") + wordSmlToJS("; emit js2; out "))")
-        | JSSubWord => (out wordJSToSml; out "wordSmlToJS("; emit js1; out ") - wordSmlToJS("; emit js2; out "))")
-        | JSMulWord => (out wordJSToSml; out "wordSmlToJS("; emit js1; out ") * wordSmlToJS("; emit js2; out "))")
-        | JSDivWord => (out wordJSToSml; out "wordSmlToJS("; emit js1; out ") divInt(wordSmlToJS("; emit js2; out ")))")
-        | JSModWord => (out wordJSToSml; out "wordSmlToJS("; emit js1; out ") % wordSmlToJS("; emit js2; out "))")
+        | JSDivFloat => (out division; emit js1; out ","; emit js2; out ")")
+        | JSAddWord => (out wordJSToSml; out wordSmlToJS; emit js1; out ") + "; out wordSmlToJS; emit js2; out "))")
+        | JSSubWord => (out wordJSToSml; out wordSmlToJS; emit js1; out ") - "; out wordSmlToJS; emit js2; out "))")
+        | JSMulWord => (out wordJSToSml; out wordSmlToJS; emit js1; out ") * "; out wordSmlToJS; emit js2; out "))")
+        | JSDivWord => (out wordJSToSml; out wordSmlToJS; emit js1; out ") "; out divInt; out wordSmlToJS; emit js2; out ")))")
+        | JSModWord => (out wordJSToSml; out wordSmlToJS; emit js1; out ") % "; out wordSmlToJS; emit js2; out "))")
         | _ => out "/*ERROR: JSOperator*/"
         )
     | JSConst c => outConst c
     | JSGetVar qualid => out (hd(#id qualid))
     | JSFun(JSScope(jss, js), qualid) =>
-        (out ("function("^(hd(#id qualid))^"){\n"); scopeLoop jss; out "return "; emit js; out ";}")
-    | JSFun(js, qualid) => (out ("function("^(hd(#id qualid))^")\n{"); out "return "; emit js; out ";}")
+        (out "function("; out (hd(#id qualid)); out "){\n"; scopeLoop jss; out "return "; emit js; out ";}")
+    | JSFun(js, qualid) => (out "function("; out (hd(#id qualid)); out ")\n{"; out "return "; emit js; out ";}")
     | JSIf(tst, js1, js2) =>
       (case tst of
         JSTest(_,_,_) =>
-          (out "(function(){ return ("; emit tst; out " ? "; emit js1; out " : "; emit js2; out ")}())")
+          outAnon (fn _ => (out " return ("; emit tst; out " ? "; emit js1; out " : "; emit js2; out ")"))
       | _ =>
-          (out "(function(){ return ("; emit tst; out " ? "; emit js1; out " : "; emit js2; out ")}())")
+          outAnon (fn _ => (out " return ("; emit tst; out " ? "; emit js1; out " : "; emit js2; out ")"))
       )
-    | JSSetField(i, js1, js2) => 
-          (out "(function(){"; emit js1; out ".args["; out (Int.toString i); out "] = "; emit js2; out "}())")
-    | JSSetVar(qualid, js) => (out ("var "^(hd(#id qualid))^" = "); emit js)
+    | JSSetField(i, js1, js2) =>
+        outAnon (fn _ => (emit js1; out ".args["; out (Int.toString i); out "] = "; emit js2))
+    | JSSetVar(qualid, js) => (out "var "; out (hd(#id qualid)); out " = "; emit js)
     | JSScope(jss, js) =>
       (case js of
         (JSSetVar(qualid, js)) =>
-          (out ("var "^(hd(#id qualid))^" = "); out "(function(){\n";
-           scopeLoop jss; out "return "; emit js; out ";\n}())")
-      | _                      => (out "(function(){\n"; scopeLoop jss; out "return "; emit js; out ";\n}())")
+          (out "var "; out (hd(#id qualid)); out " = ");
+	   outAnon (fn _ => (out "\n"; scopeLoop jss; out "return "; emit js; out ";\n")))
+      | _ => outAnon (fn _ => (out "\n"; scopeLoop jss; out "return "; emit js; out ";\n"))
       )
     | JSTest(tst, js1, js2) =>
       (case tst of
@@ -82,20 +87,20 @@ in
     | JSWhile(exp, body) => (out "while ("; emit exp; out "){\n"; emit body; out "\n}")
     | JSUnspec => out ""
     | JSSwitch(0, exp, clist, def) =>
-        (out "(function(){switch("; emit exp; out "){";
-         map (fn (lbl, exp') => (out "\ncase "; emit lbl; out ":\nreturn ";
-         emit exp')) clist; out "\ndefault:\nreturn "; emit def; out "\n}}())")
+        outAnon (fn _ => (out "switch("; emit exp; out "){";
+        map (fn (lbl, exp') => (out "\ncase "; emit lbl; out ":\nreturn ";
+        emit exp')) clist; out "\ndefault:\nreturn "; emit def; out "\n}"))
     | JSSwitch(1, exp, clist, def) =>
-        (out "(function(){switch("; emit exp; out ".tag){";
-         map (fn (lbl, exp') => (out "\ncase "; emit lbl; out ":\nreturn ";
-         emit exp')) clist; out "\ndefault:\nreturn "; emit def; out "\n}}())")
+        outAnon (fn _ => (out "{switch("; emit exp; out ".tag){";
+        map (fn (lbl, exp') => (out "\ncase "; emit lbl; out ":\nreturn ";
+        emit exp')) clist; out "\ndefault:\nreturn "; emit def; out "\n}}"))
     | JSBlock(tag, args) => outBlock tag args
     | JSGetField(idxs,qualid) =>
-        (out (hd(#id qualid)); app (fn idx => out (".args["^idx^"]")) idxs)
-    | JSRaise(js) => (out "(function(){throw "; emit js; out "}())")
+        (out (hd(#id qualid)); app (fn idx => (out ".args["; out idx; out "]")) idxs)
+    | JSRaise(js) => outAnon (fn _ => (out "throw "; emit js; out "}())"))
     | JSTryCatch(js1, var, exp1, exp2, js3) =>
-        (out "(function(){try {\nreturn "; emit js1; out "\n} catch ("; emit var; out " if "; emit exp1; out " === ";
-          emit exp2; out "){\n return "; emit js3; out "\n}}())")
+        outAnon (fn _ => (out"{try {\nreturn "; emit js1; out "\n} catch ("; emit var; out " if "; emit exp1; out " === ";
+          emit exp2; out "){\n return "; emit js3; out "\n}"))
     | JSError(errmsg) => (out "/*ERROR: "; out errmsg; out "*/")
     | _ => out "/*ERROR: JSEmit*/"
 
@@ -105,10 +110,12 @@ in
     and scopeLoop [] = ()
       | scopeLoop (exp::exps) = (emit exp; out ";\n"; scopeLoop exps)
 
-    and outBlock tag [] = (out "Constructor("; out (Int.toString tag); out ")")
+    and outBlock tag [] = (out Constructor; out (Int.toString tag); out ")")
       | outBlock tag (arg::args) =
-        (out "Constructor("; out (Int.toString tag); out ",["; emit arg;
+        (out Constructor; out (Int.toString tag); out ",["; emit arg;
          map (fn x => (out ", "; emit x)) args; out "])")
+
+    and outAnon f = (out "(function(){"; f (); out "}())")
   ;
 
   fun emitPhrase os (ajs : JSInstruction) =
