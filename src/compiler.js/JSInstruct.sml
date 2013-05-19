@@ -42,22 +42,3 @@ and JSOp =
 and JSTestType =
     JSeq | JSneq | JSlt | JSle | JSgt | JSge
 ;
-(*
-and bool_test =
-    Peq_test
-  | Pnoteq_test
-  | Pint_test of int prim_test
-  | Pfloat_test of real prim_test
-  | Pstring_test of string prim_test
-  | Pword_test of word prim_test
-  | Pnoteqtag_test of BlockTag
-
-and 'a prim_test =
-    PTeq
-  | PTnoteq
-  | PTnoteqimm of 'a
-  | PTlt
-  | PTle
-  | PTgt
-  | PTge
-*)
