@@ -21,7 +21,7 @@ val Lconst_BLOCKsc_tuple = (1, 2, 3, 4, 5)
 val Lconst_BLOCKsc_false = false
 val Lconst_BLOCKsc_true = true
 
-(* val Lconst_BLOCKsc_ref = ref 10 *)
+val Lconst_BLOCKsc_ref = ref 10
 
 datatype 'a Lconst_BLOCKsc_datatype =
   Lconst_BLOCKsc_datatype_nil1
@@ -130,14 +130,3 @@ val Lorelse_test = (false orelse true) = true
 
 (* Lunspec *)
 val _ = "Lunspec"
-
-(* Lshared *)
-datatype Lshared_datatype = Lshared_A | Lshared_B
-fun Lshared_test x =
-    case x of
-        (Lshared_A,Lshared_A,_,_,_,_,_,_,_,_) => 0
-      | (_,_,Lshared_A,Lshared_A,_,_,_,_,_,_) => 1
-      | (_,_,_,_,Lshared_A,Lshared_A,_,_,_,_) => 2
-      | (_,_,_,_,_,_,Lshared_A,Lshared_A,_,_) => 3
-      | (_,_,_,_,_,_,_,_,Lshared_A,Lshared_A) => 4
-      | (Lshared_A,Lshared_B,Lshared_A,Lshared_B,Lshared_A,Lshared_B,Lshared_A,Lshared_B,Lshared_A,Lshared_B) => ~1
