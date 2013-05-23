@@ -76,7 +76,7 @@ fun Lhandle_fun1 (0,0) = raise Lhandle_exception1
 
 fun Lhandle_fun2 x = (Lhandle_fun1 x handle Lhandle_exception1 => 0) handle Lhandle_exception2 (n,m) => m
 
-fun Lhandle_fun3 = let exception Lhandle_exception3 in (raise Lhandle_exception3) end
+fun Lhandle_fun3 () = let exception Lhandle_exception3 in (raise Lhandle_exception3) end
 
 (* Lstatichandle -> Lcase *)
 fun Lcase_fib_rec 0 = 1

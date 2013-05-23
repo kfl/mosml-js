@@ -3,7 +3,7 @@
 open List Obj BasicIO Nonstdio Fnlib Mixture Const Globals Location Units;
 open Types Smlperv Asynt Parser Ovlres Infixres Elab Sigmtch;
 open Tr_env Front Emit_phr;
-open JSEmit JSBack;
+open JSEmit JSBack JSLib;
 
 (* Lexer of stream *)
 
@@ -456,7 +456,7 @@ fun compileAndEmit context uname uident umode filename specSig_opt elab decs =
     val () = resetTypes();
     val os = open_out_bin filename_uo
     val jsos = TextIO.openOut filename_js
-    val jstop = "\"use strict\"\n"
+    val jstop = "\"use strict\"\n"^includejslib("node")
   in
     ( TextIO.output (jsos, jstop);
       TextIO.flushOut jsos;
@@ -499,7 +499,7 @@ fun compileAndEmit context uname uident umode filename specSig_opt elab decs =
 	warn on deprecated syntax
 *)
 
-fun compileUnitBody context uname umode filename =
+fun compileUnitBody context uname umode filename jsmode =
   let val filename_sig = filename ^ ".sig"
       val filename_ui  = filename ^ ".ui"
       val filename_sml = filename ^ ".sml"
@@ -509,30 +509,30 @@ fun compileUnitBody context uname umode filename =
 	  (* cvr: TODO warn *)
 	  if file_exists filename_sig then
 	      (checkExists filename_ui filename_sig filename_sml;
-	       compileAndEmit context uname uname umode filename (SOME (readSig uname)) elabStrDec decs)
+	       compileAndEmit context uname uname umode filename (SOME (readSig uname)) elabStrDec decs) jsmode
 	  else
 	      (remove_file filename_ui;
-	       compileAndEmit context uname uname umode filename NONE elabStrDec decs)
+	       compileAndEmit context uname uname umode filename NONE elabStrDec decs) jsmode
 	| compileStruct (NamedStruct{locstrid as (_,strid), locsigid = NONE, decs}) =
 	  (checkUnitId "structure" locstrid uname;
 	   checkNotExists filename_sig filename_sml;
 	   remove_file filename_ui;
-	   compileAndEmit context uname strid umode filename NONE elabStrDec decs)
+	   compileAndEmit context uname strid umode filename NONE elabStrDec decs) jsmode
 	 (* cvr: TODO remove locsigid field from NamedStruct *)
 	| compileStruct (NamedStruct _) = fatalError "compileUnitBody"
 	| compileStruct (Abstraction{locstrid as (_,strid), locsigid, decs}) =
 	  (checkUnitId "structure" locstrid uname;
 	   checkUnitId "signature" locsigid uname;
 	   checkExists filename_ui filename_sig filename_sml;
-	   compileAndEmit context uname strid umode filename (SOME (readSig uname)) elabStrDec decs
+	   compileAndEmit context uname strid umode filename (SOME (readSig uname)) elabStrDec decs jsmode
 )
 	| compileStruct (TopDecs decs) =
 	  if file_exists filename_sig then
 	      (checkExists filename_ui filename_sig filename_sml;
-	       compileAndEmit context uname "" umode  filename (SOME (readSig uname)) elabToplevelDec decs)
+	       compileAndEmit context uname "" umode  filename (SOME (readSig uname)) elabToplevelDec decs) jsmode
 	  else
 	      (remove_file filename_ui;
-	       compileAndEmit context uname "" umode filename NONE elabToplevelDec decs)
+	       compileAndEmit context uname "" umode filename NONE elabToplevelDec decs) jsmode
   in
       input_name := filename_sml;
       input_stream := is;
