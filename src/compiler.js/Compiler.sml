@@ -499,7 +499,7 @@ fun compileAndEmit context uname uident umode filename specSig_opt elab decs =
 	warn on deprecated syntax
 *)
 
-fun compileUnitBody context uname umode filename jsmode =
+fun compileUnitBody context uname umode filename =
   let val filename_sig = filename ^ ".sig"
       val filename_ui  = filename ^ ".ui"
       val filename_sml = filename ^ ".sml"
@@ -509,30 +509,30 @@ fun compileUnitBody context uname umode filename jsmode =
 	  (* cvr: TODO warn *)
 	  if file_exists filename_sig then
 	      (checkExists filename_ui filename_sig filename_sml;
-	       compileAndEmit context uname uname umode filename (SOME (readSig uname)) elabStrDec decs) jsmode
+	       compileAndEmit context uname uname umode filename (SOME (readSig uname)) elabStrDec decs)
 	  else
 	      (remove_file filename_ui;
-	       compileAndEmit context uname uname umode filename NONE elabStrDec decs) jsmode
+	       compileAndEmit context uname uname umode filename NONE elabStrDec decs)
 	| compileStruct (NamedStruct{locstrid as (_,strid), locsigid = NONE, decs}) =
 	  (checkUnitId "structure" locstrid uname;
 	   checkNotExists filename_sig filename_sml;
 	   remove_file filename_ui;
-	   compileAndEmit context uname strid umode filename NONE elabStrDec decs) jsmode
+	   compileAndEmit context uname strid umode filename NONE elabStrDec decs)
 	 (* cvr: TODO remove locsigid field from NamedStruct *)
 	| compileStruct (NamedStruct _) = fatalError "compileUnitBody"
 	| compileStruct (Abstraction{locstrid as (_,strid), locsigid, decs}) =
 	  (checkUnitId "structure" locstrid uname;
 	   checkUnitId "signature" locsigid uname;
 	   checkExists filename_ui filename_sig filename_sml;
-	   compileAndEmit context uname strid umode filename (SOME (readSig uname)) elabStrDec decs jsmode
+	   compileAndEmit context uname strid umode filename (SOME (readSig uname)) elabStrDec decs
 )
 	| compileStruct (TopDecs decs) =
 	  if file_exists filename_sig then
 	      (checkExists filename_ui filename_sig filename_sml;
-	       compileAndEmit context uname "" umode  filename (SOME (readSig uname)) elabToplevelDec decs) jsmode
+	       compileAndEmit context uname "" umode  filename (SOME (readSig uname)) elabToplevelDec decs)
 	  else
 	      (remove_file filename_ui;
-	       compileAndEmit context uname "" umode filename NONE elabToplevelDec decs) jsmode
+	       compileAndEmit context uname "" umode filename NONE elabToplevelDec decs)
   in
       input_name := filename_sml;
       input_stream := is;
