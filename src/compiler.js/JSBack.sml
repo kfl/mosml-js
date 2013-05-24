@@ -132,26 +132,36 @@ and compileJSLambdaList [] _ = []
 
 and extractLetList exp list env =
 let
-  val env' = updateEnv env
+  fun updEnv 0 e = e
+    | updEnv x e = updEnv (x-1) (updateEnv e)
+  fun compileLetrecList args =
+    let
+      val l = (length args)
+      val env' = updEnv l env
+      fun compileList [] _ list = list
+        | compileList (arg::args) n list =
+            compileList args (n-1) ((JSSetVar(nth(env', n), compileJSLambda arg env'))::list)
+      val list' = compileList args (l-1) []
+    in
+      (list',env')
+    end
   fun compileLetList args =
     let
       val l = (length args)
-      fun updEnv 0 e = e
-        | updEnv x e = updEnv (x-1) (updateEnv e)
-      val env'' = updEnv l env
+      val env' = updEnv l env
       fun compileList [] _ list = list
         | compileList (arg::args) n list =
-            compileList args (n-1) ((JSSetVar(nth(env'', n), compileJSLambda arg env''))::list)
+            compileList args (n-1) ((JSSetVar(nth(env', n), compileJSLambda arg env))::list)
       val list' = compileList args (l-1) []
     in
-      (list',env'')
+      (list',env')
     end
 in
   case exp of
     Llet(args, exp2) =>
-      let val (list',env'') = (compileLetList args) in extractLetList exp2 (list'@list) env'' end
+      let val (list',env') = (compileLetList args) in extractLetList exp2 (list'@list) env' end
   | Lletrec(args, exp2) =>
-      let val (list',env'') = (compileLetList args) in extractLetList exp2 (list'@list) env'' end
+      let val (list',env') = (compileLetrecList args) in extractLetList exp2 (list'@list) env' end
   | _ => (rev list,compileJSLambda exp env)
 end
 
