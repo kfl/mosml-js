@@ -12,7 +12,7 @@ datatype JSInstruction =
     JSGetVar of QualifiedIdent
   | JSGetField of string list * QualifiedIdent
   | JSSetField of int * JSInstruction * JSInstruction
-  | JSSetVar of QualifiedIdent * JSInstruction 
+  | JSSetVar of QualifiedIdent * JSInstruction
   | JSConst of JSConstant
   | JSOperator of JSOp * JSInstruction list
   | JSFun of JSInstruction * QualifiedIdent
@@ -31,6 +31,7 @@ datatype JSInstruction =
   | JSBlock of int * JSInstruction list
   | JSRaise of JSInstruction (* TODO might redesign this *)
   | JSTryCatch of JSInstruction * JSInstruction * JSInstruction * JSInstruction * JSInstruction
+  | JSCall of string * JSInstruction list
   | JSError of string (* Note: this is just for debugging purposes. *)
 
 and JSOp =
@@ -38,7 +39,7 @@ and JSOp =
   | JSAddFloat | JSSubFloat | JSMulFloat | JSDivFloat
   | JSAddWord | JSSubWord | JSMulWord | JSDivWord | JSModWord | JSAndWord
   | JSNegNum | JSStringLength
-  
+
 and JSTestType =
     JSeq | JSneq | JSlt | JSle | JSgt | JSge
 ;

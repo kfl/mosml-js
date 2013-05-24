@@ -158,7 +158,14 @@ end
 and compileCall (name, arity) args env =
   case (name, args) of
     ("sml_concat", arg1 :: arg2 :: []) => JSOperator (JSConcat, [compileJSLambda arg1 env, compileJSLambda arg2 env])
-  | _ => JSError("compileCall") (* else do nothing *)
+  | _ => let
+      val arglist = map (fn arg => compileJSLambda arg env) args
+    in
+      if Char.contains name #"." then
+        JSCall(name, arglist)
+      else
+        JSCall("$_mosmllib."^name, arglist)
+    end
 
 and compileBlock tag list env =
   JSBlock(tag, map (fn x => compileJSLambda x env) list)

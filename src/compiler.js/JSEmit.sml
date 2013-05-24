@@ -27,14 +27,14 @@ in
   (*Emit the given phrase in abstract js language defined in JSInstruct.sml.*)
   fun emit jsinstr =
     case jsinstr of
-      JSOperator(op1, [js]) => 
-        (case op1 of 
+      JSOperator(op1, [js]) =>
+        (case op1 of
           JSNegNum => (out "-"; emit js)
         | JSStringLength => (emit js; out ".length")
         | _ => out "/*ERROR: JSOperator*/"
         )
-    | JSOperator(op1, [js1, js2]) => 
-        (case op1 of 
+    | JSOperator(op1, [js1, js2]) =>
+        (case op1 of
           JSConcat => (emit js1; out "+"; emit js2)
         | JSAddInt => (out overflowCheck; emit js1; out "+"; emit js2; out ")")
         | JSSubInt => (out overflowCheck; emit js1; out "-"; emit js2; out ")")
@@ -72,11 +72,11 @@ in
         (JSSetVar(qualid, js)) =>
           (out "var "; out (hd(#id qualid)); out " = ";
 	         outAnon (fn _ => (out "\n"; scopeLoop jss; out "return "; emit js; out ";\n")))
-      | (JSSeqFun(js1 as JSSetVar(_, _), js2)) => 
+      | (JSSeqFun(js1 as JSSetVar(_, _), js2)) =>
         let
-          fun evalVars (js1, js2) s l = 
+          fun evalVars (js1, js2) s l =
             case (js1,js2) of
-              (JSSetVar(qualid1, js1), JSSetVar(qualid2, js2)) => 
+              (JSSetVar(qualid1, js1), JSSetVar(qualid2, js2)) =>
                 (String.extract(s^","^(hd(#id qualid1))^","^(hd(#id qualid2)),1,NONE),
                  rev(js2::js1::l))
             | (JSSetVar(qualid, js1), JSSeqFun(js2, js3))      =>
@@ -121,8 +121,13 @@ in
     | JSTryCatch(js1, var, exp1, exp2, js3) =>
         outAnon (fn _ => (out"{try {\nreturn "; emit js1; out "\n} catch ("; emit var; out " if "; emit exp1; out " === ";
           emit exp2; out "){\n return "; emit js3; out "\n}"))
+    | JSCall(call, args) => (out call; out "("; emitCallArgs args; out ")")
     | JSError(errmsg) => (out "/*ERROR: "; out errmsg; out "*/")
     | _ => out "/*ERROR: JSEmit*/"
+
+    and emitCallArgs [] = ()
+      | emitCallArgs (arg::[]) = emit arg
+      | emitCallArgs (arg::args) = (emit arg; out ","; emitCallArgs args)
 
     and emitArgs [] = ()
       | emitArgs (arg::args) = (out "("; emit arg; out ")"; emitArgs args)

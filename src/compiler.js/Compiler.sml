@@ -3,7 +3,7 @@
 open List Obj BasicIO Nonstdio Fnlib Mixture Const Globals Location Units;
 open Types Smlperv Asynt Parser Ovlres Infixres Elab Sigmtch;
 open Tr_env Front Emit_phr;
-open JSEmit JSBack JSLib;
+open JSEmit JSBack;
 
 (* Lexer of stream *)
 
@@ -456,7 +456,7 @@ fun compileAndEmit context uname uident umode filename specSig_opt elab decs =
     val () = resetTypes();
     val os = open_out_bin filename_uo
     val jsos = TextIO.openOut filename_js
-    val jstop = "\"use strict\"\n"^includejslib("node")
+    val jstop = "\"use strict\"\n"
   in
     ( TextIO.output (jsos, jstop);
       TextIO.flushOut jsos;

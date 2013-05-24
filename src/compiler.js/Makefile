@@ -17,7 +17,7 @@ COMP_OBJS = \
     Match.uo Front.uo Back.uo Pr_zam.uo \
     Opcodes.uo Prim_opc.uo Buffcode.uo Labels.uo Code_dec.uo Reloc.uo \
     Emitcode.uo Emit_phr.uo Sigmtch.uo Compiler.uo \
-    Pr_JS.uo JSEmit.uo JSInstruct.uo JSBack.uo JSLib.uo
+    Pr_JS.uo JSEmit.uo JSInstruct.uo JSBack.uo
 
 C_LIBOBJS= \
     List.uo Strbase.uo Char.uo String.uo BasicIO.uo TextIO.uo \
@@ -270,7 +270,7 @@ Const.uo: Fnlib.ui Config.uo Mixture.ui
 Compiler.uo: Compiler.ui Asynt.uo Front.ui Parser.ui Const.uo Back.ui \
     Fnlib.ui Pr_zam.uo Elab.ui JSEmit.uo Lexer.ui Config.uo Sigmtch.ui \
     Types.ui Ovlres.ui Globals.uo Smlperv.ui Tr_env.ui Location.ui \
-    Mixture.ui Units.ui Infixres.ui Hasht.ui JSBack.uo Pr_JS.uo JSLib.ui
+    Mixture.ui Units.ui Infixres.ui Hasht.ui JSBack.uo Pr_JS.uo
 Compiler.ui: Asynt.uo Globals.uo Mixture.ui
 Code_dec.uo: Const.uo Mixture.ui Hasht.ui
 Buffcode.uo: Fnlib.ui Config.uo Opcodes.uo Mixture.ui
