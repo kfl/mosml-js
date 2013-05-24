@@ -27,7 +27,12 @@ in
   (*Emit the given phrase in abstract js language defined in JSInstruct.sml.*)
   fun emit jsinstr =
     case jsinstr of
-      JSOperator(JSNegNum, [js]) => (out "-"; emit js)
+      JSOperator(op1, [js]) => 
+        (case op1 of 
+          JSNegNum => (out "-"; emit js)
+        | JSStringLength => (emit js; out ".length")
+        | _ => out "/*ERROR: JSOperator*/"
+        )
     | JSOperator(op1, [js1, js2]) => 
         (case op1 of 
           JSConcat => (emit js1; out "+"; emit js2)

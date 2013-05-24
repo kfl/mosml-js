@@ -37,7 +37,7 @@ and JSOp =
     JSAddInt | JSSubInt | JSMulInt | JSDivInt | JSModInt | JSConcat
   | JSAddFloat | JSSubFloat | JSMulFloat | JSDivFloat
   | JSAddWord | JSSubWord | JSMulWord | JSDivWord | JSModWord | JSAndWord
-  | JSNegNum
+  | JSNegNum | JSStringLength
   
 and JSTestType =
     JSeq | JSneq | JSlt | JSle | JSgt | JSge
