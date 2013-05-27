@@ -69,9 +69,9 @@ in
     | JSIf(tst, js1, js2) =>
       (case tst of
         JSTest(_,_,_) =>
-          outAnon (fn _ => (out " return ("; emit tst; out " ? "; emit js1; out " : "; emit js2; out ")"))
+          outAnon (fn _ => (out " return ("; emit tst; out ".tag ? "; emit js1; out " : "; emit js2; out ")"))
       | _ =>
-          outAnon (fn _ => (out " return ("; emit tst; out " ? "; emit js1; out " : "; emit js2; out ")"))
+          outAnon (fn _ => (out " return ("; emit tst; out ".tag ? "; emit js1; out " : "; emit js2; out ")"))
       )
     | JSSetField(i, js1, js2) =>
         outAnon (fn _ => (emit js1; out ".args["; out (Int.toString i); out "] = "; emit js2))
@@ -108,12 +108,12 @@ in
       )
     | JSTest(tst, js1, js2) =>
       (case tst of
-        JSeq          => (out "("; emit js1; out " === "; emit js2; out ")")
-      | JSneq         => (out "("; emit js1; out " !== "; emit js2; out ")")
-      | JSlt          => (out "("; emit js1; out " < "; emit js2; out ")")
-      | JSle          => (out "("; emit js1; out " <= "; emit js2; out ")")
-      | JSgt          => (out "("; emit js1; out " > "; emit js2; out ")")
-      | JSge          => (out "("; emit js1; out " >= "; emit js2; out ")")
+        JSeq          => (out Constructor; emit js1; out " == "; emit js2; out ")")
+      | JSneq         => (out Constructor; emit js1; out " != "; emit js2; out ")")
+      | JSlt          => (out Constructor; emit js1; out " < "; emit js2; out ")")
+      | JSle          => (out Constructor; emit js1; out " <= "; emit js2; out ")")
+      | JSgt          => (out Constructor; emit js1; out " > "; emit js2; out ")")
+      | JSge          => (out Constructor; emit js1; out " >= "; emit js2; out ")")
       )
     | JSNot(js) => (out "!"; emit js)
     | JSApply(func, args) => (emit func; emitArgs args)
