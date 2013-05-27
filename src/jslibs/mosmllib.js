@@ -19,24 +19,38 @@ function DivException() {
     this.name = "DivException";
 }
 
+/* Object definition of the sml constructor */
+function Constructor(tag, args){
+    var instance = {}
+    instance.tag = tag;
+    instance.args = args;
+    return instance;
+}
+
+/* Exception of division */
+var exn_div = Constructor(250, ["exn_div"]);
+var exn_match = Constructor(250, ["exn_match"]);
+var exn_overflow = Constructor(250, ["exn_overflow"]);
+
 /********************/
 /* PUBLIC FUNCTIONS */
 /********************/
 return {
 
 /* Object definition of the sml constructor */
-Constructor : function(tag, args){
-    var instance = {}
-    instance.tag = tag;
-    instance.args = args;
-    return instance;
-},
+Constructor : function(tag,args){return Constructor(tag, args)},
+
+/* Some SML standard exceptions. */
+exn_div : exn_div,
+exn_match : exn_match
+exn_overflow : exn_match
+
 
 /*  Overflow check. Takes signed 32-bit integer.
     Throws OverflowException on overflow, else given integer. */
 overflowCheck32 : function(x) {
     if(x > 1073741823 || x < -1073741824) {
-        throw new OverflowException();
+        throw new Constructor(0, [exn_overflow, Constructor(0)])}());
     }
     else return x;
 },
@@ -45,7 +59,7 @@ overflowCheck32 : function(x) {
     Throws OverflowException on overflow, else given integer. */
 overflowCheck64 : function(x) {
     if(x > 4611686018427387903 || x < -4611686018427387904) {
-        throw new OverflowException();
+        throw new Constructor(0, [exn_overflow, Constructor(0)])}())();
     }
     else return x;
 },
@@ -98,11 +112,11 @@ word8JSToSml : function(x) {
 /*  Throws exception on division by 0, i.e. y==0.
     Returns integer x divided by y. */
 divInt : function(x,y) {
-    return (y === 0 ? (function(){throw new DivException()}()) : Math.floor(y/x));
+    return (y === 0 ? (function(){throw Constructor(0, [exn_div, Constructor(0)])}()) : Math.floor(y/x));
 },
 
 division : function(x,y) {
-    return (y === 0 ? (function(){throw new DivException()}()) : y/x);
+    return (y === 0 ? (function(){throw Constructor(0, [exn_div, Constructor(0)])}()) : y/x);
 }
 
 }}());
