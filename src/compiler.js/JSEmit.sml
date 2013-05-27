@@ -138,15 +138,11 @@ in
     | JSGetField(idxs,qualid) =>
         (outQualid qualid; app (fn idx => (out ".args["; out idx; out "]")) idxs)
     | JSRaise(js) => outAnon (fn _ => (out "throw "; emit js))
-    | JSTryCatch(js1, var, tsts) =>
-      let
-        fun emitTsts [] =  () (*(out "else{\n throw "; emit var; out ";\n}") *)
-          | emitTsts ((exp1, exp2, js, exp3)::tsts) = (out "if("; emit exp1; out " == ";
-        emit exp2; out "){\n return "; emit js; out ";\n}else{\nreturn "; emit exp3; out "\n}"; emitTsts tsts)
-      in
+    | JSTryCatch(js1, var, exp1, exp2, js, exp3) =>
         outAnon (fn _ => (out "try {\nreturn "; emit js1; out "\n} catch (";
-                          emit var; out "){\n" ; emitTsts tsts; out "}"))
-      end
+                          emit var; out "){\n" ; out "if("; emit exp1; out " == ";
+                          emit exp2; out "){\n return "; emit js; 
+                          out ";\n}else{\nreturn "; emit exp3; out "\n}"; out "}"))
     | JSCall(call, args) => (out call; out "("; emitCallArgs args; out ")")
     | JSError(errmsg) => (out "/*ERROR: "; out errmsg; out "*/")
     | _ => out "/*ERROR: JSEmit*/"

@@ -30,7 +30,7 @@ datatype JSInstruction =
   | JSSwitch of int * JSInstruction * (JSInstruction * JSInstruction) list * JSInstruction
   | JSBlock of int * JSInstruction list
   | JSRaise of JSInstruction (* TODO might redesign this *)
-  | JSTryCatch of JSInstruction * JSInstruction * (JSInstruction * JSInstruction * JSInstruction * JSInstruction) list
+  | JSTryCatch of JSInstruction * JSInstruction * JSInstruction * JSInstruction * JSInstruction * JSInstruction
   | JSCall of string * JSInstruction list
   | JSError of string (* Note: this is just for debugging purposes. *)
 
