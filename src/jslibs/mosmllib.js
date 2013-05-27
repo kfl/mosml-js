@@ -42,15 +42,15 @@ Constructor : function(tag,args){return Constructor(tag, args)},
 
 /* Some SML standard exceptions. */
 exn_div : exn_div,
-exn_match : exn_match
-exn_overflow : exn_match
+exn_match : exn_match,
+exn_overflow : exn_overflow,
 
 
 /*  Overflow check. Takes signed 32-bit integer.
     Throws OverflowException on overflow, else given integer. */
 overflowCheck32 : function(x) {
     if(x > 1073741823 || x < -1073741824) {
-        throw new Constructor(0, [exn_overflow, Constructor(0)])}());
+        throw new Constructor(0, [exn_overflow, Constructor(0)]);
     }
     else return x;
 },
@@ -59,7 +59,7 @@ overflowCheck32 : function(x) {
     Throws OverflowException on overflow, else given integer. */
 overflowCheck64 : function(x) {
     if(x > 4611686018427387903 || x < -4611686018427387904) {
-        throw new Constructor(0, [exn_overflow, Constructor(0)])}())();
+        throw new Constructor(0, [exn_overflow, Constructor(0)]);
     }
     else return x;
 },
