@@ -9,13 +9,13 @@ datatype JSConstant =
   | JSSTRscon of string
 
 datatype JSInstruction =
-    JSGetVar of QualifiedIdent
-  | JSGetField of string list * QualifiedIdent
+    JSGetVar of QualifiedIdent * int
+  | JSGetField of string list * (QualifiedIdent * int)
   | JSSetField of int * JSInstruction * JSInstruction
-  | JSSetVar of QualifiedIdent * JSInstruction
+  | JSSetVar of (QualifiedIdent * int) * JSInstruction
   | JSConst of JSConstant
   | JSOperator of JSOp * JSInstruction list
-  | JSFun of JSInstruction * QualifiedIdent
+  | JSFun of JSInstruction * (QualifiedIdent * int)
   | JSScope of JSInstruction list * JSInstruction
   | JSIf of JSInstruction * JSInstruction * JSInstruction
   | JSNot of JSInstruction

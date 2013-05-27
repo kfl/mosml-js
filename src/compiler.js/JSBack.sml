@@ -55,7 +55,7 @@ in
   case exp of
     Lapply (func, args) => JSApply(compileJSLambda func env, compileJSLambdaList args env)
   | Lconst scon => compileConst scon
-  | Lfn (exp) => JSFun(compileJSLambda exp env', hd(env'))
+  | Lfn (exp) => JSFun(compileJSLambda exp env', (hd(env'), ~1))
   | Lif (tst, exp1, exp2) =>
       JSIf (compileJSLambda tst env, compileJSLambda exp1 env, compileJSLambda exp2 env)
   | Llet (args, exp2) =>
@@ -64,10 +64,10 @@ in
   | Lletrec (args, exp2) =>
       JSScope(extractLetList exp [] env)
   | Lprim (prim, args) => compileJSPrim prim args env
-  | Lvar (i) => JSGetVar(nth(env,i))
+  | Lvar (i) => JSGetVar(nth(env,i), ~1)
   | Lseq (exp1, exp2) =>
     (case exp1 of
-      (Lprim(Pset_global(_,_),_))=> JSSeqFun(compileJSLambda exp1 env, compileJSLambda exp2 env)
+      (Lprim(Pset_global _, _))=> JSSeqFun(compileJSLambda exp1 env, compileJSLambda exp2 env)
     | _ => JSSeq(compileJSLambda exp1 env, compileJSLambda exp2 env))
   | Landalso (exp1, exp2) => JSAnd(compileJSLambda exp1 env, compileJSLambda exp2 env)
   | Lorelse (exp1, exp2) => JSOr(compileJSLambda exp1 env, compileJSLambda exp2 env)
@@ -84,15 +84,15 @@ in
   | Lshared (lref, _) => compileJSLambda (!lref) env
   | Lhandle (exp1, tst as (Lif(Lprim(_, [(Lprim(_,[Lvar(j)])), _]), _, _))) =>
     let
-      fun compileTsts tst tsts = 
+      fun compileTsts tst tsts =
         case tst of
           (Lif(Lprim(Ptest(Peq_test), [arg1, arg2]), exp2, exp3)) =>
-            compileTsts exp3 ((compileJSLambda arg1 env', compileJSLambda arg2 env', 
+            compileTsts exp3 ((compileJSLambda arg1 env', compileJSLambda arg2 env',
             compileJSLambda exp2 env')::tsts)
         | _ => tsts
       val compTsts = compileTsts tst []
     in
-      JSTryCatch(compileJSLambda exp1 env, JSGetVar(nth(env',j)), compTsts)
+      JSTryCatch(compileJSLambda exp1 env, JSGetVar(nth(env',j), ~1), compTsts)
     end
   | _ => JSError("compileJSLambda") (* else print error *)
 end
@@ -116,8 +116,8 @@ and compileJSPrim (prim : primitive) args env =
   | (Pfloatprim(fprim), [arg1, arg2]) =>
       JSOperator(compileFloat fprim, [compileJSLambda arg1 env, compileJSLambda arg2 env])
   | (Pccall call, args) => compileCall call args env
-  | (Pget_global(uid,_), _ )=> JSGetVar uid
-  | (Pset_global(uid,_), [arg]) => JSSetVar (uid, compileJSLambda arg env)
+  | (Pget_global qualid, _ )=> JSGetVar qualid
+  | (Pset_global qualid, [arg]) => JSSetVar (qualid, compileJSLambda arg env)
   | (Pfield(i), [arg]) => (JSGetField(compileGetField arg [Int.toString(i)] env) handle Subscript => JSError("Pfield"))
   | (Ptest(bool_test), [arg1, arg2]) =>
     (case bool_test of
@@ -150,7 +150,7 @@ let
       val env' = updEnv l env
       fun compileList [] _ list = list
         | compileList (arg::args) n list =
-            compileList args (n-1) ((JSSetVar(nth(env', n), compileJSLambda arg env'))::list)
+            compileList args (n-1) ((JSSetVar((nth(env', n), ~1), compileJSLambda arg env'))::list)
       val list' = compileList args (l-1) []
     in
       (list',env')
@@ -161,7 +161,7 @@ let
       val env' = updEnv l env
       fun compileList [] _ list = list
         | compileList (arg::args) n list =
-            compileList args (n-1) ((JSSetVar(nth(env', n), compileJSLambda arg env))::list)
+            compileList args (n-1) ((JSSetVar((nth(env', n), ~1), compileJSLambda arg env))::list)
       val list' = compileList args (l-1) []
     in
       (list',env')
@@ -196,7 +196,7 @@ and compileBlocksc tag sclist =
 and compileConst (ATOMsc(scon)) = compileSCon scon
   | compileConst (BLOCKsc(CONtag(tag,_), args)) = compileBlocksc tag args
 
-and compileGetField (Lprim(Pget_global(uid,_),_)) idxs _ = (idxs, uid)
-  | compileGetField (Lvar(j)) idxs env = (idxs, nth(env,j))
+and compileGetField (Lprim(Pget_global qualid, _)) idxs _ = (idxs, qualid)
+  | compileGetField (Lvar(j)) idxs env = (idxs, (nth(env,j), ~1))
   | compileGetField (Lprim(Pfield(i),[arg])) idxs env = compileGetField arg (Int.toString(i)::idxs) env
 ;
