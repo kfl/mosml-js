@@ -117,6 +117,24 @@ divInt : function(x,y) {
 
 division : function(x,y) {
     return (y === 0 ? (function(){throw Constructor(0, [exn_div, Constructor(0)])}()) : y/x);
+},
+
+sml_equal : function(x,y) {
+    function eqArgs(x,y) {
+        if(x === y){return true}
+        if(x.args.length !== y.args.length){return false}
+        for(var i = 0; i < x.args.length; i++){
+           if(!eqTag(x.args[i], y.args[i])){return false}
+        }
+        return true;
+    }
+    function eqTag(x,y) {
+        if(typeof(x) !== typeof(y)){return false}
+        if(typeof(x) !== typeof(Constructor(0))){return (x===y)}
+        if(x.tag === y.tag){return eqArgs(x,y)} else {return false}
+
+    }
+        return (eqTag(x,y) ? Constructor(1, []) : Constructor(0, []));
 }
 
 }}());
