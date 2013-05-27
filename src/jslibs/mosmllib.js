@@ -122,6 +122,8 @@ division : function(x,y) {
 sml_equal : function(x,y) {
     function eqArgs(x,y) {
         if(x === y){return true}
+        if((typeof x === "undefined" || x.length == []) && 
+           (typeof y === "undefined" || y.length == [])) {return true}
         if(x.length !== y.length){return false}
         for(var i = 0; i < x.length; i++){
            if(!eqTag(x[i], y[i])){return false}
