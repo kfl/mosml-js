@@ -124,7 +124,7 @@ in
     | JSSeqFun(js1, js2) => (emit js1; out ";\n"; emit js2)
     | JSAnd(js1, js2) => (emit js1; out " && "; emit js2)
     | JSOr(js1, js2) => (emit js1; out " || "; emit js2)
-    | JSWhile(exp, body) => (out "(function(){while ("; emit exp; out "){\n"; emit body; out "\n}}())")
+    | JSWhile(exp, body) => (out "(function(){while ("; emit exp; out ".tag){\n"; emit body; out "\n}}())")
     | JSUnspec => out ""
     | JSSwitch(0, exp, clist, def) =>
         outAnon (fn _ => (out "switch("; emit exp; out "){";

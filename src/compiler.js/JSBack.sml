@@ -36,7 +36,7 @@ fun compileSCon scon =
 let
   val const = case scon of
     INTscon i => if i < 0 then JSINTscon ("-"^Int.toString (Int.abs i)) else JSINTscon (Int.toString i)
-  | WORDscon w => JSWORDscon ("0wx"^Word.toString w)
+  | WORDscon w => JSWORDscon ("0x"^Word.toString w)
   | CHARscon c => JSSTRscon (Char.toString c)
   | REALscon r => if r < 0.0 then JSREALscon ("-"^Real.toString(Real.abs r)) else JSREALscon (Real.toString r)
   | STRINGscon s => JSSTRscon s
