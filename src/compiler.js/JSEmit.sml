@@ -11,6 +11,12 @@ local
   val division = jslib^"division("
 in
 
+  (* Handle invalid names in JS*)
+  val handleInvalidNames = fn
+      "@" => "$_at"
+    | "!" => "$_bang"
+    | n => n
+
   fun out (s : string) =
     output (!outstream, s);
   ;
@@ -23,6 +29,9 @@ in
     | JSSTRscon s => out ("\""^s^"\"")
   ;
 
+  fun outQualid ((qual : QualifiedIdent), idx) =
+    (out (handleInvalidNames (hd (#id qual)));
+     if idx > 0 then (out "$"; out (Int.toString idx)) else ())
 
   (*Emit the given phrase in abstract js language defined in JSInstruct.sml.*)
   fun emit jsinstr =
@@ -53,10 +62,10 @@ in
         | _ => out "/*ERROR: JSOperator*/"
         )
     | JSConst c => outConst c
-    | JSGetVar qualid => out (hd(#id qualid))
+    | JSGetVar qualid => outQualid qualid
     | JSFun(JSScope(jss, js), qualid) =>
-        (out "function("; out (hd(#id qualid)); out "){\n"; scopeLoop jss; out "return "; emit js; out ";}")
-    | JSFun(js, qualid) => (out "function("; out (hd(#id qualid)); out ")\n{"; out "return "; emit js; out ";}")
+        (out "function("; outQualid qualid; out "){\n"; scopeLoop jss; out "return "; emit js; out ";}")
+    | JSFun(js, qualid) => (out "function("; outQualid qualid; out ")\n{"; out "return "; emit js; out ";}")
     | JSIf(tst, js1, js2) =>
       (case tst of
         JSTest(_,_,_) =>
@@ -66,31 +75,32 @@ in
       )
     | JSSetField(i, js1, js2) =>
         outAnon (fn _ => (emit js1; out ".args["; out (Int.toString i); out "] = "; emit js2))
-    | JSSetVar(qualid, js) => (out "var "; out (hd(#id qualid)); out " = "; emit js)
+    | JSSetVar(qualid, js) => (out "var "; outQualid qualid; out " = "; emit js)
     | JSScope(jss, js) =>
       (case js of
         (JSSetVar(qualid, js)) =>
-          (out "var "; out (hd(#id qualid)); out " = ";
+          (out "var "; outQualid qualid; out " = ";
 	         outAnon (fn _ => (out "\n"; scopeLoop jss; out "return "; emit js; out ";\n")))
       | (JSSeqFun(js1, js2)) =>
         let
           fun evalVars (js1, js2) vars vals =
             case (js1,js2) of
               (JSSetVar(qualid1, js1), JSSetVar(qualid2, js2)) =>
-                (rev((hd(#id qualid1))::(hd(#id qualid2))::vars),
+                (rev(qualid1::qualid2::vars),
                  rev(js2::js1::vals))
             | (JSSetVar(qualid, js1), JSSeqFun(js2, js3))      =>
-                evalVars (js2, js3) ((hd(#id qualid))::vars) (js1::vals)
+                evalVars (js2, js3) (qualid::vars) (js1::vals)
+
           val (vars, vals) = evalVars (js1,js2) [] []
 
-          fun outVars (js::[])  = out js
-            | outVars (js::jss) = (out js; out ","; outVars jss)
+          fun outVars (js::[])  = outQualid js
+            | outVars (js::jss) = (outQualid js; out ","; outVars jss)
 
-          fun outVals (js1::[]) (js2::[])  = (out js1; out " = "; emit js2; out ";\n")
-            | outVals (js1::jss1) (js2::jss2) = (out js1; out " = "; emit js2; out ";\n"; outVals jss1 jss2)
+          fun outVals (js1::[]) (js2::[])  = (outQualid js1; out " = "; emit js2; out ";\n")
+            | outVals (js1::jss1) (js2::jss2) = (outQualid js1; out " = "; emit js2; out ";\n"; outVals jss1 jss2)
             | outVals _ _ = out "Error in JSSeqFun\n"
         in
-          (out "var "; outVars vars; out ";\n"; 
+          (out "var "; outVars vars; out ";\n";
            outAnon (fn _ => (out "\n"; scopeLoop jss; outVals vars vals; out "return ;\n")))
 (*    (out "var ["; out vars; out "] = "; outAnon (fn _ => (out "\n"; scopeLoop jss; out "return ["; outVals vals; out "];\n"))) *)
         end
@@ -123,10 +133,10 @@ in
         emit exp')) clist; out "\ndefault:\nreturn "; emit def; out "\n}}"))
     | JSBlock(tag, args) => outBlock tag args
     | JSGetField(idxs,qualid) =>
-        (out (hd(#id qualid)); app (fn idx => (out ".args["; out idx; out "]")) idxs)
+        (outQualid qualid; app (fn idx => (out ".args["; out idx; out "]")) idxs)
     | JSRaise(js) => outAnon (fn _ => (out "throw "; emit js))
     | JSTryCatch(js1, var, tsts) =>
-      let 
+      let
         fun emitTsts [] = (out "else{\n throw "; emit var; out ";\n}")
           | emitTsts ((exp1, exp2, js)::tsts) = (out "if("; emit exp1; out " == ";
         emit exp2; out "){\n return "; emit js; out ";\n}"; emitTsts tsts)

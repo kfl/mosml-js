@@ -1,10 +1,15 @@
+prim_val clog_ : 'a -> unit = 1 "console.log"
+fun clog x = clog_ x
+fun cloglist [] = ()
+  | cloglist (x::xs) = (clog x; cloglist xs)
+
 val it = 1;
 val it = 2 + ((fn 2 => 99 | x => x) 3);
 
-val it = let val x=99 in x+1 end;
+val it = let val x=99 in clog(x+1) end;
 
 val rec fact = fn 0 => 1 | n => n * fact(n-1);
-val it = fact 4;
+val it = clog(fact 4);
 
 val rec append2 =
   fn ([], ys) => ys
@@ -18,7 +23,7 @@ val rec append =
       of [] => ys
        | x :: xs => x :: append xs ys
 ;
-val it = append [1,2,3] [4,5,6];
+val it = cloglist(append [1,2,3] [4,5,6]);
 
 val reverse = fn xs =>
   let
