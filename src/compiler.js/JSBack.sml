@@ -94,10 +94,6 @@ in
     in
       JSTryCatch(compileJSLambda exp1 env, compTsts)
     end
- (*  (Lif(Lprim(Ptest(Peq_test), [arg1 as (Lprim(_,[Lvar(j)])), arg2]), exp2, _))) =>
-
-      JSTryCatch(compileJSLambda exp1 env, JSGetVar(nth(env',j)), compileJSLambda arg1 env', 
-                 compileJSLambda arg2 env', compileJSLambda exp2 env') *)
   | _ => JSError("compileJSLambda") (* else print error *)
 end
 

@@ -125,10 +125,6 @@ in
     | JSGetField(idxs,qualid) =>
         (out (hd(#id qualid)); app (fn idx => (out ".args["; out idx; out "]")) idxs)
     | JSRaise(js) => outAnon (fn _ => (out "throw "; emit js))
-   (* | JSTryCatch(js1, var, exp1, exp2, js3) =>
-        outAnon (fn _ => (out"try {\nreturn "; emit js1; out "\n} catch ("; emit var; out " if "; emit exp1; out " === ";
-          emit exp2; out "){\n return "; emit js3; out "\n}")) *)
-
     | JSTryCatch(js1, tsts) =>
       let 
         fun emitTsts [] = ()
