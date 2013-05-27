@@ -1,0 +1,17 @@
+#!/bin/bash
+smlfile=$1
+jsfile=${1/sml/js}
+tmpjs=${1/sml/tmp.js}
+
+echo "==============================LAMBDA BEGIN=============================="
+~/project/mosml2.10-new/bin/mosmlc -c $smlfile
+echo "==============================LAMBDA END=============================="
+
+cat ~/Repos/mosml-js/src/jslibs/mosmllib.js > $tmpjs
+cat $jsfile >> $tmpjs
+
+echo "==============================JS BEGIN=============================="
+node $tmpjs
+echo "==============================JS END=============================="
+
+rm $tmpjs
