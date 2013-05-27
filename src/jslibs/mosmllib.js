@@ -122,16 +122,16 @@ division : function(x,y) {
 sml_equal : function(x,y) {
     function eqArgs(x,y) {
         if(x === y){return true}
-        if(x.args.length !== y.args.length){return false}
-        for(var i = 0; i < x.args.length; i++){
-           if(!eqTag(x.args[i], y.args[i])){return false}
+        if(x.length !== y.length){return false}
+        for(var i = 0; i < x.length; i++){
+           if(!eqTag(x[i], y[i])){return false}
         }
         return true;
     }
     function eqTag(x,y) {
         if(typeof(x) !== typeof(y)){return false}
         if(typeof(x) !== typeof(Constructor(0))){return (x===y)}
-        if(x.tag === y.tag){return eqArgs(x,y)} else {return false}
+        if(x.tag === y.tag){return eqArgs(x.args,y.args)} else {return false}
 
     }
         return (eqTag(x,y) ? Constructor(1, []) : Constructor(0, []));
