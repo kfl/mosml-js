@@ -116,7 +116,12 @@ and compileJSPrim (prim : primitive) args env =
   | (Pfloatprim(fprim), [arg1, arg2]) =>
       JSOperator(compileFloat fprim, [compileJSLambda arg1 env, compileJSLambda arg2 env])
   | (Pccall call, args) => compileCall call args env
-  | (Pget_global qualid, _ )=> JSGetVar qualid
+  | (Pget_global (qualid as (ident, i)),_) => 
+    (case #qual ident of 
+      "General" => 
+        JSGetVar ({id=(("$_mosmllib."^(hd(#id ident)))::(tl(#id ident))),qual=(#qual ident)},i)
+    | _ => JSGetVar qualid
+    )
   | (Pset_global qualid, [arg]) => JSSetVar (qualid, compileJSLambda arg env)
   | (Pfield(i), [arg]) => (JSGetField(compileGetField arg [Int.toString(i)] env) handle Subscript => JSError("Pfield"))
   | (Ptest(bool_test), [arg1, arg2]) =>
