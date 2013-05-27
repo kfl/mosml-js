@@ -108,12 +108,12 @@ in
       )
     | JSTest(tst, js1, js2) =>
       (case tst of
-        JSeq          => (out Constructor; emit js1; out " == "; emit js2; out ")")
-      | JSneq         => (out Constructor; emit js1; out " != "; emit js2; out ")")
-      | JSlt          => (out Constructor; emit js1; out " < "; emit js2; out ")")
-      | JSle          => (out Constructor; emit js1; out " <= "; emit js2; out ")")
-      | JSgt          => (out Constructor; emit js1; out " > "; emit js2; out ")")
-      | JSge          => (out Constructor; emit js1; out " >= "; emit js2; out ")")
+        JSeq          => (out Constructor; emit js1; out " == "; emit js2; out "? 1 : 0)")
+      | JSneq         => (out Constructor; emit js1; out " != "; emit js2; out "? 1 : 0)")
+      | JSlt          => (out Constructor; emit js1; out " < "; emit js2; out "? 1 : 0)")
+      | JSle          => (out Constructor; emit js1; out " <= "; emit js2; out "? 1 : 0)")
+      | JSgt          => (out Constructor; emit js1; out " > "; emit js2; out "? 1 : 0)")
+      | JSge          => (out Constructor; emit js1; out " >= "; emit js2; out "? 1 : 0)")
       )
     | JSNot(js) => (out "!"; emit js)
     | JSApply(func, args) => (emit func; emitArgs args)
