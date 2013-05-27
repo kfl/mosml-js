@@ -24,17 +24,17 @@ datatype 'a X = X of string;
 val stripX = fn X u => u;
 val it = fn _ => stripX (X "OK");
 val it = it () : string;
-val _ = clog it;
+val _ = clogBool (it="OK");
 
 val stripX666 = fn X "666" => X "000" | x => x;
 
 val it = fn _ => stripX666 (X "666");
 val it = it () : int X;
-val _ = clog it;
+val _ = clogBool (it=(X "000"));
 
 val it = fn _ => stripX666 (X "OK");
 val it = it () : int X;
-val _ = clog it;
+val _ = clogBool (it=(X "OK"));
 
 
 datatype XXX =
@@ -43,9 +43,6 @@ datatype XXX =
 
 val a12 = A(1,2)
 and b12 = B(1,2);
-val _ = clog a12;
-val _ = clog b12;
-
 
 fun strip (A x) = x
   | strip (B x) = x;

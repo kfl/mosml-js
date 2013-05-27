@@ -1,3 +1,14 @@
+prim_val clog_ : 'a -> unit = 1 "console.log"
+
+fun clog x = clog_ x
+
+fun clogList [] = ()
+  | clogList (x::xs) = (clog x; clogList xs)
+  
+  fun clogBool true = clog "true"
+    | clogBool false = clog "false"
+
+
 (* Lvar *)
 val hello = "goodbye"
 val Lvar_concat =
@@ -122,7 +133,8 @@ and Lseq_func2 0 = 0
   | Lseq_func2 x = 2 * Lseq_func1 x-1
 
 (* Lwhile *)
-val Lwhile_infinite = while true do 1;
+val loop_ref = ref 10;
+val Lwhile_10 = while !loop_ref > 0 do (clog loop_ref; loop_ref := !loop_ref-1);
 
 (* Landalso + Lorelse *)
 val Landalso_test = (true andalso false) = false
