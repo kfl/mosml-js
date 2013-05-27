@@ -82,8 +82,22 @@ in
       map (fn (CONtag (tag,span), exp') => (JSConst(JSINTscon (Int.toString tag )),
       compileJSLambda exp' env)) clist, compileJSLambda def env)
   | Lshared (lref, _) => compileJSLambda (!lref) env
-  | Lhandle (exp1, (Lif(Lprim(Ptest(Peq_test), [arg1 as (Lprim(_,[Lvar(j)])), arg2]), exp2, _))) =>
-      JSTryCatch(compileJSLambda exp1 env, JSGetVar(nth(env',j)), compileJSLambda arg1 env', compileJSLambda arg2 env', compileJSLambda exp2 env')
+  | Lhandle (exp1, tst) =>
+    let
+      fun compileTsts tst tsts = 
+        case tst of
+          (Lif(Lprim(Ptest(Peq_test), [arg1 as (Lprim(_,[Lvar(j)])), arg2]), exp2, exp3)) =>
+            compileTsts exp3 ((JSGetVar(nth(env',j)), compileJSLambda arg1 env', 
+                 compileJSLambda arg2 env', compileJSLambda exp2 env')::tsts)
+        | _ => tsts
+      val compTsts = compileTsts tst []
+    in
+      JSTryCatch(compileJSLambda exp1 env, compTsts)
+    end
+ (*  (Lif(Lprim(Ptest(Peq_test), [arg1 as (Lprim(_,[Lvar(j)])), arg2]), exp2, _))) =>
+
+      JSTryCatch(compileJSLambda exp1 env, JSGetVar(nth(env',j)), compileJSLambda arg1 env', 
+                 compileJSLambda arg2 env', compileJSLambda exp2 env') *)
   | _ => JSError("compileJSLambda") (* else print error *)
 end
 

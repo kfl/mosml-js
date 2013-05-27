@@ -72,20 +72,27 @@ in
         (JSSetVar(qualid, js)) =>
           (out "var "; out (hd(#id qualid)); out " = ";
 	         outAnon (fn _ => (out "\n"; scopeLoop jss; out "return "; emit js; out ";\n")))
-      | (JSSeqFun(js1 as JSSetVar(_, _), js2)) =>
+      | (JSSeqFun(js1, js2)) =>
         let
-          fun evalVars (js1, js2) s l =
+          fun evalVars (js1, js2) vars vals =
             case (js1,js2) of
               (JSSetVar(qualid1, js1), JSSetVar(qualid2, js2)) =>
-                (String.extract(s^","^(hd(#id qualid1))^","^(hd(#id qualid2)),1,NONE),
-                 rev(js2::js1::l))
+                (rev((hd(#id qualid1))::(hd(#id qualid2))::vars),
+                 rev(js2::js1::vals))
             | (JSSetVar(qualid, js1), JSSeqFun(js2, js3))      =>
-                evalVars (js2, js3) (s^","^(hd(#id qualid))) (js1::l)
-          val (vars, vals) = evalVars (js1, js2) "" []
-          fun outVals (js::[])  = emit js
-            | outVals (js::jss) = (emit js; out ","; outVals jss)
+                evalVars (js2, js3) ((hd(#id qualid))::vars) (js1::vals)
+          val (vars, vals) = evalVars (js1,js2) [] []
+
+          fun outVars (js::[])  = out js
+            | outVars (js::jss) = (out js; out ","; outVars jss)
+
+          fun outVals (js1::[]) (js2::[])  = (out js1; out " = "; emit js2; out ";\n")
+            | outVals (js1::jss1) (js2::jss2) = (out js1; out " = "; emit js2; out ";\n"; outVals jss1 jss2)
+            | outVals _ _ = out "Error in JSSeqFun\n"
         in
-          (out "var ["; out vars; out "] = "; outAnon (fn _ => (out "\n"; scopeLoop jss; out "return ["; outVals vals; out "];\n")))
+          (out "var "; outVars vars; out ";\n"; 
+           outAnon (fn _ => (out "\n"; scopeLoop jss; outVals vars vals; out "return ;\n")))
+(*    (out "var ["; out vars; out "] = "; outAnon (fn _ => (out "\n"; scopeLoop jss; out "return ["; outVals vals; out "];\n"))) *)
         end
       | _ => outAnon (fn _ => (out "\n"; scopeLoop jss; out "return "; emit js; out ";\n"))
       )
@@ -104,7 +111,7 @@ in
     | JSSeqFun(js1, js2) => (emit js1; out ";\n"; emit js2)
     | JSAnd(js1, js2) => (emit js1; out " && "; emit js2)
     | JSOr(js1, js2) => (emit js1; out " || "; emit js2)
-    | JSWhile(exp, body) => (out "while ("; emit exp; out "){\n"; emit body; out "\n}")
+    | JSWhile(exp, body) => (out "(function(){while ("; emit exp; out "){\n"; emit body; out "\n}}())")
     | JSUnspec => out ""
     | JSSwitch(0, exp, clist, def) =>
         outAnon (fn _ => (out "switch("; emit exp; out "){";
@@ -117,10 +124,19 @@ in
     | JSBlock(tag, args) => outBlock tag args
     | JSGetField(idxs,qualid) =>
         (out (hd(#id qualid)); app (fn idx => (out ".args["; out idx; out "]")) idxs)
-    | JSRaise(js) => outAnon (fn _ => (out "throw "; emit js; out "}())"))
-    | JSTryCatch(js1, var, exp1, exp2, js3) =>
-        outAnon (fn _ => (out"{try {\nreturn "; emit js1; out "\n} catch ("; emit var; out " if "; emit exp1; out " === ";
-          emit exp2; out "){\n return "; emit js3; out "\n}"))
+    | JSRaise(js) => outAnon (fn _ => (out "throw "; emit js))
+   (* | JSTryCatch(js1, var, exp1, exp2, js3) =>
+        outAnon (fn _ => (out"try {\nreturn "; emit js1; out "\n} catch ("; emit var; out " if "; emit exp1; out " === ";
+          emit exp2; out "){\n return "; emit js3; out "\n}")) *)
+
+    | JSTryCatch(js1, tsts) =>
+      let 
+        fun emitTsts [] = ()
+          | emitTsts ((var, exp1, exp2, js)::tsts) = (out "catch("; emit var; out " if "; emit exp1; out " === ";
+        emit exp2; out "){\n return "; emit js; out ";\n}"; emitTsts tsts)
+      in
+        outAnon (fn _ => (out"try {\nreturn "; emit js1; out "\n}"; emitTsts tsts))
+      end
     | JSCall(call, args) => (out call; out "("; emitCallArgs args; out ")")
     | JSError(errmsg) => (out "/*ERROR: "; out errmsg; out "*/")
     | _ => out "/*ERROR: JSEmit*/"
