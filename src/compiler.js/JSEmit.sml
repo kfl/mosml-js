@@ -11,12 +11,6 @@ local
   val division = jslib^"division("
 in
 
-  (* Handle invalid names in JS*)
-  val handleInvalidNames = fn
-      "@" => "$_at"
-    | "!" => "$_bang"
-    | n => n
-
   fun out (s : string) =
     output (!outstream, s);
   ;
@@ -30,8 +24,17 @@ in
   ;
 
   fun outQualid ((qual : QualifiedIdent), idx) =
-    (out (handleInvalidNames (hd (#id qual)));
-     if idx > 0 then (out "$"; out (Int.toString idx)) else ())
+    let
+      (* Handle invalid names in JS*)
+      val handleInvalidNames = fn
+        #"@" => "$_at"
+      | #"!" => "$_bang"
+      | #"'" => "$_mark"
+      | n => Char.toString(n)
+    in
+      (out (String.translate handleInvalidNames (hd (#id qual)));
+       if idx > 0 then (out "$"; out (Int.toString idx)) else ())
+    end;
 
   (*Emit the given phrase in abstract js language defined in JSInstruct.sml.*)
   fun emit jsinstr =
@@ -141,7 +144,7 @@ in
           | emitTsts ((exp1, exp2, js, exp3)::tsts) = (out "if("; emit exp1; out " == ";
         emit exp2; out "){\n return "; emit js; out ";\n}else{\nreturn "; emit exp3; out "\n}"; emitTsts tsts)
       in
-        outAnon (fn _ => (out "try {\nreturn "; emit js1; out "\n} catch ("; 
+        outAnon (fn _ => (out "try {\nreturn "; emit js1; out "\n} catch (";
                           emit var; out "){\n" ; emitTsts tsts; out "}"))
       end
     | JSCall(call, args) => (out call; out "("; emitCallArgs args; out ")")
