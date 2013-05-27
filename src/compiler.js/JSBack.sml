@@ -88,7 +88,7 @@ in
         case tst of
           (Lif(Lprim(Ptest(Peq_test), [arg1, arg2]), exp2, exp3)) =>
             compileTsts exp3 ((compileJSLambda arg1 env', compileJSLambda arg2 env',
-            compileJSLambda exp2 env')::tsts)
+            compileJSLambda exp2 env', compileJSLambda exp3 env')::tsts)
         | _ => tsts
       val compTsts = compileTsts tst []
     in
