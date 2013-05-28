@@ -1,17 +1,76 @@
 #!/bin/bash
-smlfile=$1
-jsfile=${1/sml/js}
-tmpjs=${1/sml/tmp.js}
+cc=$HOME/project/mosml2.10-new/bin/mosmlc
+mosmllib=$HOME/Repos/mosml-js/src/jslibs/mosmllib.js
 
-echo "==============================LAMBDA BEGIN=============================="
-~/project/mosml2.10-new/bin/mosmlc -c $smlfile
-echo "==============================LAMBDA END=============================="
+smlfile=""
+jsfile=""
+tmpfile=""
+jsuselib=false
+smluselib=true
+showlambda=true
+translatefirst=true
 
-cat ~/Repos/mosml-js/src/jslibs/mosmllib.js > $tmpjs
-cat $jsfile >> $tmpjs
+while : ; do
+    case $1 in
+    "")
+        break
+        ;;
+    *.sml)
+        translatefirst=true
+        smlfile=$1
+        jsfile=${1/sml/js}
+        tmpfile=${1/sml/tmp.js}
+        ;;
+    *.js)
+        translatefirst=false
+        jsfile=$1
+        tmpfile=${1/js/tmp.js}
+        ;;
+    -uselib)
+        jsuselib=true
+        ;;
+    -nolib)
+        smluselib=false
+        ;;
+    -nolambda)
+        showlambda=false
+        ;;
+    -*)
+        echo "Unknown option \"$1\", ignored" >&2
+        ;;
+    *)
+        echo "I don't know what to do with file \"$1\", ignored" >&2
+        ;;
+  esac
+  shift
+done
+
+if $translatefirst; then
+    if $showlambda; then
+        echo "==============================LAMBDA BEGIN=============================="
+        $cc -c $smlfile
+        echo "==============================LAMBDA END================================"
+    else
+        $cc -c $smlfile > /dev/null
+    fi
+    if $smluselib; then
+        cat $mosmllib > $tmpfile
+        cat $jsfile >> $tmpfile
+    else
+        cat $jsfile > $tmpfile
+    fi
+else
+    if $jsuselib; then
+        cat $mosmllib > $tmpfile
+        cat $jsfile >> $tmpfile
+    else
+        cat $jsfile > $tmpfile
+    fi
+fi
 
 echo "==============================JS BEGIN=============================="
-node $tmpjs
-echo "==============================JS END=============================="
+node $tmpfile
+echo "==============================JS END================================"
+rm $tmpfile
 
-rm $tmpjs
+exit 0
