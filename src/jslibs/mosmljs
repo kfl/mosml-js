@@ -59,6 +59,7 @@ if $translatefirst; then
     else
         cat $jsfile > $tmpfile
     fi
+    js-beautify -r $jsfile
 else
     if $jsuselib; then
         cat $mosmllib > $tmpfile
