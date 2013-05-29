@@ -64,49 +64,12 @@ overflowCheck64 : function(x) {
     else return x;
 },
 
-/*  Takes sml word on form "0wx..."
-    Returns word converted to integer */
-wordSmlToJS : function(x) {
-    var re = /^(0wx)[0-9,A-F]+$/;
-    if (re.test(x)) {
-        var JSWord = x.substring(3);
-        return parseInt(JSWord, 16);
-    }
-    else throw "NotWord";
+wordOverflow32 : function(x) {
+    return x > 2147483647 ? x-2147483648 : x;
 },
 
-/*  Takes JS word of int
-    Returns 32-bit sml word on form "0wx..." */
-wordJSToSml32 : function(x) {
-    var JSWord = x > 2147483647 ? x-2147483648 : x
-    var SmlWord = JSWord.toString(16);
-    return "0wx"+SmlWord;
-},
-
-/*  Takes JS word of int
-    Returns 64-bit sml word on form "0wx..." */
-wordJSToSml64 : function(x) {
-    var JSWord = x > 9223372036854775807 ? x-9223372036854775808 : x
-    var SmlWord = JSWord.toString(16);
-    return "0wx"+SmlWord;
-},
-
-/*  Takes 8-bit sml word8  on form "0wx..."
-    Returns word converted to integer */
-word8SmlToJS : function(x) {
-    var re = /^(0wx)[0-9,A-F]+$/;
-    if (re.test(x)) {
-        var JSWord = x.substring(3);
-        return parseInt(JSWord, 16);
-    }
-    else throw "NotWord8";
-},
-
-/*  Takes JS word of int
-    Returns 8-bit sml word8 on form "0wx..." */
-word8JSToSml : function(x) {
-    var SmlWord8 = x.toString(16).substring(0,2);
-    return "0wx"+SmlWord8
+wordOverflow64 : function(x) {
+    return x > 9223372036854775807 ? x-9223372036854775808 : x;
 },
 
 /*  Throws exception on division by 0, i.e. y==0.
@@ -122,7 +85,7 @@ division : function(x,y) {
 sml_equal : function(x,y) {
     function eqArgs(x,y) {
         if(x === y){return true}
-        if((typeof x === "undefined" || x.length == 0) && 
+        if((typeof x === "undefined" || x.length == 0) &&
            (typeof y === "undefined" || y.length == 0)) {return true}
         if(x.length !== y.length){return false}
         for(var i = 0; i < x.length; i++){
