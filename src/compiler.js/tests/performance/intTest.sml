@@ -3,13 +3,11 @@ prim_val ctimeend_ : string -> unit = 1 "console.timeEnd";
 fun ctimeBegin n = ctimebegin_ n;
 fun ctimeEnd n = ctimeend_ n;
 
-fun recAdd 100000000 = ()
+fun recAdd 9500 = ()
   | recAdd x = recAdd (x+1)
-  
-  
+
 fun recSub 0 = ()
   | recSub x = recSub (x-1)
-
 
 val it = ctimeBegin "Add1";
 val it = recAdd 0;
@@ -43,33 +41,32 @@ val it = recAdd 0;
 val it = ctimeEnd "Add10";
 
 val it = ctimeBegin "Sub1";
-val it = recSub 1000000000;
+val it = recSub 9500;
 val it = ctimeEnd "Sub1";
 val it = ctimeBegin "Sub2";
-val it = recSub 1000000000;
+val it = recSub 9500;
 val it = ctimeEnd "Sub2";
 val it = ctimeBegin "Sub3";
-val it = recSub 1000000000;
+val it = recSub 9500;
 val it = ctimeEnd "Sub3";
 val it = ctimeBegin "Sub4";
-val it = recSub 1000000000;
+val it = recSub 9500;
 val it = ctimeEnd "Sub4";
 val it = ctimeBegin "Sub5";
-val it = recSub 1000000000;
+val it = recSub 9500;
 val it = ctimeEnd "Sub5";
 val it = ctimeBegin "Sub6";
-val it = recSub 1000000000;
+val it = recSub 9500;
 val it = ctimeEnd "Sub6";
 val it = ctimeBegin "Sub7";
-val it = recSub 1000000000;
+val it = recSub 9500;
 val it = ctimeEnd "Sub7";
 val it = ctimeBegin "Sub8";
-val it = recSub 1000000000;
+val it = recSub 9500;
 val it = ctimeEnd "Sub8";
 val it = ctimeBegin "Sub9";
-val it = recSub 1000000000;
+val it = recSub 9500;
 val it = ctimeEnd "Sub9";
 val it = ctimeBegin "Sub10";
-val it = recSub 1000000000;
+val it = recSub 9500;
 val it = ctimeEnd "Sub10";
-
