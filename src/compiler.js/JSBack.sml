@@ -60,7 +60,6 @@ in
       JSIf (compileJSLambda tst env, compileJSLambda exp1 env, compileJSLambda exp2 env)
   | Llet (args, exp2) =>
       JSScope(extractLetList exp [] env)
-  | Llet (args, exp2) => JSError("Llet")
   | Lletrec (args, exp2) =>
       JSScope(extractLetList exp [] env)
   | Lprim (prim, args) => compileJSPrim prim args env
@@ -88,7 +87,10 @@ in
           compileJSLambda exp2 env', compileJSLambda exp3 env')
   | _ => JSError("compileJSLambda") (* else print error *)
 end
-
+(* Converts expressions of Lambda primitives to expressions of abstract JS.
+   exp is the lambda primitive expression.
+   env is the current scope environment.
+   returns expression of abstract JS. *)
 and compileJSPrim (prim : primitive) args env =
   case (prim, args) of
     (Psmlnegint, [arg])        => JSOperator(JSNegNum, [compileJSLambda arg env])
@@ -137,6 +139,10 @@ and compileJSPrim (prim : primitive) args env =
 and compileJSLambdaList [] _ = []
   | compileJSLambdaList (exp::exps) env = (compileJSLambda exp env)::(compileJSLambdaList exps env)
 
+(* Extracts the list of variables in a let or letrec expressions and 
+   assigns the right variable indices.
+   Takes the body and list of local expressions of the let.
+   Retuns the compiled list of local variable assignments and the body.*)
 and extractLetList exp list env =
 let
   fun updEnv 0 e = e
@@ -171,7 +177,8 @@ in
       let val (list',env') = (compileLetrecList args) in extractLetList exp2 (list'@list) env' end
   | _ => (rev list,compileJSLambda exp env)
 end
-
+(* Handles Pccall.
+   Prepends the given name with "$_mosmllib." if no dot is present in call. *)
 and compileCall (name, arity) args env =
   case (name, args) of
     ("sml_concat", arg1 :: arg2 :: []) => JSOperator (JSConcat, [compileJSLambda arg1 env, compileJSLambda arg2 env])
@@ -183,16 +190,17 @@ and compileCall (name, arity) args env =
       else
         JSCall("$_mosmllib."^name, arglist)
     end
-
+(* Handles non-primitive blocks of makeblock *)
 and compileBlock tag list env =
   JSBlock(tag, map (fn x => compileJSLambda x env) list)
-
+(* Handles primitive blocks *)
 and compileBlocksc tag sclist =
   JSBlock(tag, map (fn x => compileConst x) sclist)
-
+(* Handles primitive constants. *)
 and compileConst (ATOMsc(scon)) = compileSCon scon
   | compileConst (BLOCKsc(CONtag(tag,_), args)) = compileBlocksc tag args
-
+(* Handles Pgetfield (from tupples).
+   Can be of global and local variable or another Pgetfield *)
 and compileGetField (Lprim(Pget_global qualid, _)) idxs _ = (idxs, qualid)
   | compileGetField (Lvar(j)) idxs env = (idxs, (nth(env,j), ~1))
   | compileGetField (Lprim(Pfield(i),[arg])) idxs env = compileGetField arg (Int.toString(i)::idxs) env
