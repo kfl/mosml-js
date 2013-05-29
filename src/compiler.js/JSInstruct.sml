@@ -1,4 +1,4 @@
-(* The description of the intermediate JS-instruction set. *)
+(* The description of the intermediate JS language instruction set. *)
 
 open Const Prim;
 
@@ -29,7 +29,7 @@ datatype JSInstruction =
   | JSUnspec
   | JSSwitch of int * JSInstruction * (JSInstruction * JSInstruction) list * JSInstruction
   | JSBlock of int * JSInstruction list
-  | JSRaise of JSInstruction (* TODO might redesign this *)
+  | JSRaise of JSInstruction 
   | JSTryCatch of JSInstruction * JSInstruction * JSInstruction * JSInstruction * JSInstruction * JSInstruction
   | JSCall of string * JSInstruction list
   | JSError of string (* Note: this is just for debugging purposes. *)

@@ -1,4 +1,8 @@
-(* JSBack.sml : translation of lambda terms to lists of intermediate JS-instructions. *)
+(* JSBack.sml : translation of lambda terms to 
+   lists of intermediate JS-instructions. 
+   Author: Jens Fredskov, Henrik Bendt
+   Date: 2013-05-29
+*)
 
 open Const Lambda Prim JSInstruct List;
 

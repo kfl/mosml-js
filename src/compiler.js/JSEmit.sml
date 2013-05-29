@@ -1,3 +1,9 @@
+(* JSEmit.sml : Emition of intermediate JS language 
+   from JSBack.sml and defined in JSInstruct.sml
+   Author: Jens Fredskov, Henrik Bendt
+   Date: 2013-05-29
+*)
+
 local
   open JSInstruct Const TextIO List;
   val outstream = ref stdOut;
@@ -11,10 +17,12 @@ local
   val division = jslib^"division("
 in
 
+(* Prints out string s to outstream. *)
   fun out (s : string) =
     output (!outstream, s);
   ;
 
+(* Emits constants. *)
   fun outConst scon =
     case scon of
       JSINTscon i => out i
@@ -22,7 +30,8 @@ in
     | JSREALscon r => out r
     | JSSTRscon s => out ("\""^s^"\"")
   ;
-
+(* Emits qualid, i.e. name, of variables and append index.
+   Also handles special characters not usable in JS. *)
   fun outQualid ((qual : QualifiedIdent), idx) =
     let
       (* Handle invalid names in JS*)
@@ -36,7 +45,7 @@ in
        if idx > 0 then (out "$"; out (Int.toString idx)) else ())
     end;
 
-  (*Emit the given phrase in abstract js language defined in JSInstruct.sml.*)
+  (*Emit the given phrase in intermediate JS language defined in JSInstruct.sml.*)
   fun emit jsinstr =
     case jsinstr of
       JSOperator(op1, [js]) =>
@@ -67,8 +76,10 @@ in
     | JSConst c => outConst c
     | JSGetVar qualid => outQualid qualid
     | JSFun(JSScope(jss, js), qualid) =>
-        (out "function("; outQualid qualid; out "){\n"; scopeLoop jss; out "return "; emit js; out ";}")
-    | JSFun(js, qualid) => (out "function("; outQualid qualid; out ")\n{"; out "return "; emit js; out ";}")
+        (out "function("; outQualid qualid; out "){\n"; scopeLoop jss; 
+         out "return "; emit js; out ";}")
+    | JSFun(js, qualid) => (out "function("; outQualid qualid; out ")\n{"; 
+                            out "return "; emit js; out ";}")
     | JSIf(tst, js1, js2) =>
       (case tst of
         JSTest(_,_,_) =>
@@ -146,25 +157,25 @@ in
     | JSCall(call, args) => (out call; out "("; emitCallArgs args; out ")")
     | JSError(errmsg) => (out "/*ERROR: "; out errmsg; out "*/")
     | _ => out "/*ERROR: JSEmit*/"
-
+    (* Emits arguments of JSCall (of Pccall). *)
     and emitCallArgs [] = ()
       | emitCallArgs (arg::[]) = emit arg
       | emitCallArgs (arg::args) = (emit arg; out ","; emitCallArgs args)
-
+    (* Emits (curried) arguments to a funciton call. *)
     and emitArgs [] = ()
       | emitArgs (arg::args) = (out "("; emit arg; out ")"; emitArgs args)
-
+    (* Emits the scope variables before the return statement. *)
     and scopeLoop [] = ()
       | scopeLoop (exp::exps) = (emit exp; out ";\n"; scopeLoop exps)
-
+    (* Emits the block construcktor. *)
     and outBlock tag [] = (out Constructor; out (Int.toString tag); out ")")
       | outBlock tag (arg::args) =
         (out Constructor; out (Int.toString tag); out ",["; emit arg;
          map (fn x => (out ", "; emit x)) args; out "])")
-
+    (* Emits an anonymous function around the given function. *)
     and outAnon f = (out "(function(){"; f (); out "}())")
   ;
-
+  (* Emit the given JSInstruction (phrase) to the given outstream. *)
   fun emitPhrase os (ajs : JSInstruction) =
   (
     outstream := os;
