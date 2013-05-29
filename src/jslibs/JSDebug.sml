@@ -11,8 +11,7 @@ fun ctimeBegin n = ctimebegin_ n;
 fun ctimeEnd n = ctimeend_ n;
 
 fun repeat n f x =
-    let fun loop 0 = f x
-          | loop n = (f x; loop(n-1))
-    in  loop(n-1) end;
+    let val n = ref n
+    in  while !n > 0 do (n := !n-1; f x) end;
 
 fun timerep n f s = repeat n (fn x => (ctimeBegin(s);f x; ctimeEnd(s)));
