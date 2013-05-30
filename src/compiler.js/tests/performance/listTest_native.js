@@ -47,5 +47,5 @@ var listAppend$10 = function($_var54) {
     }
 };
 
-var it$6 = timerep$4(10)(listPrepend$5)("listPrepend")(100000.0);
-var it$12 = timerep$4(10)(listAppend$10)("listAppend")(1000.0);
+var it$6 = timerep$4(100)(listPrepend$5)("listPrepend")(100000.0);
+var it$12 = timerep$4(100)(listAppend$10)("listAppend")(1000.0);

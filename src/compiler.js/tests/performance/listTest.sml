@@ -21,12 +21,12 @@ end
 
 
 fun repeat n f x =
-  let 
+  let
     fun loop 0 = f x
       | loop n = (f x; loop(n-1))
-  in 
-    loop(n-1) 
-  end 
+  in
+    loop(n-1)
+  end
 fun timerep n f s = repeat n (fn x => (ctimeBegin(s);f x; ctimeEnd(s)))
 
 
@@ -35,7 +35,7 @@ fun listPrepend x =
     val addRef = ref 0.0;
     val listRef = ref []
   in
-    while !addRef < x do 
+    while !addRef < x do
       (addRef := !addRef+1.0;
        listRef := 1::(!listRef)
       )
@@ -46,14 +46,11 @@ fun listAppend x =
     val addRef = ref 0.0;
     val listRef = ref []
   in
-    while !addRef < x do 
+    while !addRef < x do
       (addRef := !addRef+1.0;
        listRef := (!listRef)@[1]
       )
   end
 
-
-val it = timerep 10 listPrepend "listPrepend" 100000.0
-val it = timerep 10 listAppend "listPrepend" 1000.0
-
-
+val it = timerep 100 listPrepend "listPrepend" 100000.0
+val it = timerep 100 listAppend "listAppend" 1000.0

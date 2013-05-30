@@ -5,10 +5,12 @@ mosmllib=$HOME/Repos/mosml-js/src/jslibs/mosmllib.js
 smlfile=""
 jsfile=""
 tmpfile=""
-jsuselib=false
-smluselib=true
+uselibjs=false
+uselibsml=true
 showlambda=true
 translatefirst=true
+beautify=true
+closure=false
 
 while : ; do
     case $1 in
@@ -26,14 +28,19 @@ while : ; do
         jsfile=$1
         tmpfile=${1/js/tmp.js}
         ;;
-    -uselib)
-        jsuselib=true
+    -lib)
+        uselibjs=true
+        uselibsml=true
         ;;
-    -nolib)
-        smluselib=false
+    -no-lib)
+        uselibsml=false
+        uselibjs=false
         ;;
-    -nolambda)
+    -no-lambda)
         showlambda=false
+        ;;
+    -no-jsbeautify)
+        beautify=false
         ;;
     -*)
         echo "Unknown option \"$1\", ignored" >&2
@@ -53,22 +60,23 @@ if $translatefirst; then
     else
         $cc -c $smlfile > /dev/null
     fi
-    if $smluselib; then
+    if $uselibsml; then
         cat $mosmllib > $tmpfile
         cat $jsfile >> $tmpfile
     else
         cat $jsfile > $tmpfile
     fi
-    js-beautify -r $jsfile
+    if $beautify; then
+        js-beautify -r $jsfile
+    fi
 else
-    if $jsuselib; then
+    if $uselibjs; then
         cat $mosmllib > $tmpfile
         cat $jsfile >> $tmpfile
     else
         cat $jsfile > $tmpfile
     fi
 fi
-
 echo "==============================JS BEGIN=============================="
 node $tmpfile
 echo "==============================JS END================================"

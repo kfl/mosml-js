@@ -43,5 +43,5 @@ var recSub$6 = function($_var73) {
         10 - 1;
     }
 };
-var it$7 = timerep$4(10)(recAdd$5)("addInt")(10000000.0);
-var it$8 = timerep$4(10)(recAdd$5)("subInt")(10000000.0);
+var it$7 = timerep$4(100)(recAdd$5)("addInt_native")(1000000.0);
+var it$8 = timerep$4(100)(recAdd$5)("subInt_native")(1000000.0);

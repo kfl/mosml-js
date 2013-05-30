@@ -13,5 +13,4 @@ fun ctimeEnd n = ctimeend_ n;
 fun repeat n f x =
     let val n = ref n
     in  while !n > 0 do (n := !n-1; f x) end;
-
 fun timerep n f s = repeat n (fn x => (ctimeBegin(s);f x; ctimeEnd(s)));
