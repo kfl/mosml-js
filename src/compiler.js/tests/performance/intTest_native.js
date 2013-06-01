@@ -33,15 +33,15 @@ var timerep$4 = function($_var35) {
 };
 
 
-var recAdd_native = function(x){
+var intAddRec_native = function(x){
   while(x++ < 9500){ }
   return ;
 }
 
-var recSub_native = function(x){
+var intSubRec_native = function(x){
   while(x-- > 0){ }
   return ;
 }
 
-var it$6 = timerep$4(10)(recAdd_native)("recAdd_native")(0);
-var it$12 = timerep$4(10)(recSub_native)("recSub_native")(9500);
+var it$6 = timerep$4(10)(intAddRec_native)("intAddRec_native")(0);
+var it$12 = timerep$4(10)(intSubRec_native)("intSubRec_native")(9500);

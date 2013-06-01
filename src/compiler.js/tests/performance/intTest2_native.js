@@ -31,17 +31,17 @@ var timerep$4 = function($_var35) {
         };
     };
 };
-var recAdd$5 = function($_var54) {
+var intAdd = function($_var54) {
     var i = 0;
     while (i++ < $_var54) {
         10 + 10;
     }
 };
-var recSub$6 = function($_var73) {
+var intSub = function($_var73) {
     var i = 0;
     while (i++ < $_var73) {
         10 - 1;
     }
 };
-var it$7 = timerep$4(100)(recAdd$5)("addInt_native")(1000000.0);
-var it$8 = timerep$4(100)(recAdd$5)("subInt_native")(1000000.0);
+var it$7 = timerep$4(100)(intAdd)("intAdd_native")(1000000.0);
+var it$8 = timerep$4(100)(intSub)("intSub_native")(1000000.0);

@@ -31,22 +31,23 @@ var timerep$4 = function($_var35) {
         };
     };
 };
-var recAdd$5 = function($_var54) {
+var realAdd = function($_var54) {
     var i = 0;
     while (i++ < $_var54) {
         33.3334+9.992;
     }
 };
-var recSub$6 = function($_var73) {
+var realSub = function($_var73) {
     var i = 0;
     while (i++ < $_var73) {
         33.3334-9.992;
     }
 };
-var it$7 = timerep$4(10)(recAdd$5)("addInt")(10000000.0);
-var it$8 = timerep$4(10)(recAdd$5)("subInt")(10000000.0);
+var it$7 = timerep$4(10)(realAdd)("realAdd_native")(10000000.0);
+var it$8 = timerep$4(10)(realSub)("realSub_native")(10000000.0);
 
-var recSubTest = function($_var73) {
+
+var realSubTest0 = function($_var73) {
     var i = 0;
     (function() {
         while (i++ < $_var73) {
@@ -54,17 +55,17 @@ var recSubTest = function($_var73) {
         }
     }())
 };
-var it$9 = timerep$4(10)(recSubTest)("subIntTest")(10000000.0);
+var it$9 = timerep$4(10)(recSubTest)("realSubTest0")(10000000.0);
 
-var recSubTest1 = function($_var73) {
+var realSubTest1 = function($_var73) {
     var i = 0;
     while (i++ < $_var73) {
         (function(){33.3334-9.992}())
     }
 };
-var it$9 = timerep$4(10)(recSubTest1)("subIntTest1")(10000000.0);
+var it$9 = timerep$4(10)(recSubTest1)("realSubTest1")(10000000.0);
 
-var recSubTest2 = function($_var73) {
+var realSubTest2 = function($_var73) {
     var i = 0;
     (function() {
         while (i++ < $_var73) {
@@ -72,7 +73,7 @@ var recSubTest2 = function($_var73) {
         }
     }())
 };
-var it$9 = timerep$4(10)(recSubTest2)("subIntTest2")(10000000.0);
+var it$9 = timerep$4(10)(recSubTest2)("realSubTest2")(10000000.0);
 
 
 

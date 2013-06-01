@@ -7,11 +7,11 @@ fun repeat n f x =
     in  while !n > 0 do (n := !n-1; f x) end;
 fun timerep n f s = repeat n (fn x => (ctimeBegin(s);f x; ctimeEnd(s)));
 
-fun recAdd 9500 = ()
-  | recAdd x = recAdd (x+1)
+fun intAddRec 9500 = ()
+  | intAddRec x = recAdd (x+1)
 
-fun recSub 0 = ()
-  | recSub x = recSub (x-1)
+fun intSubRec 0 = ()
+  | intSubRec x = recSub (x-1)
 
-val it = timerep 100 recAdd "recAdd" 0
-val it = timerep 100 recSub "recSub" 9500
+val it = timerep 100 intAddRec "intAddRec" 0
+val it = timerep 100 intSubRec "intSubRec" 9500

@@ -31,7 +31,7 @@ var timerep$4 = function($_var35) {
         };
     };
 };
-var recAdd$5 = function($_var54) {
+var intAdd = function($_var54) {
     var $_var56 = $_mosmllib.Constructor(250, [0.0]);
     return (function() {
         while ($_mosmllib.Constructor($_var56.args[0] < $_var54 ? 1 : 0).tag) {
@@ -41,7 +41,7 @@ var recAdd$5 = function($_var54) {
         }
     }());
 };
-var recSub$6 = function($_var73) {
+var intSub = function($_var73) {
     var $_var75 = $_mosmllib.Constructor(250, [0.0]);
     return (function() {
         while ($_mosmllib.Constructor($_var75.args[0] < $_var73 ? 1 : 0).tag) {
@@ -51,6 +51,6 @@ var recSub$6 = function($_var73) {
         }
     }());
 };
-var it$7 = timerep$4(100)(recAdd$5)("addInt_native_ref")(1000000.0);
-var it$8 = timerep$4(100)(recAdd$5)("subInt_native_ref")(1000000.0);
+var it$7 = timerep$4(100)(intAdd)("intAdd_native_ref")(1000000.0);
+var it$8 = timerep$4(100)(intSub)("intSub_native_ref")(1000000.0);
 

@@ -13,14 +13,14 @@ fun repeat n f x =
 fun timerep n f s = repeat n (fn x => (ctimeBegin(s);f x; ctimeEnd(s)))
 
 
-fun recAdd x =
+fun realAdd x =
   let
     val addRef = ref 0.0;
   in
     while !addRef < x do (addRef := !addRef+1.0; 33.3334+9.992)
   end
 
-fun recSub x =
+fun realSub x =
   let
     val subRef = ref 0.0;
   in
@@ -28,8 +28,8 @@ fun recSub x =
   end
   
 
-val it = timerep 10 recAdd "addInt" 10000000.0
-val it = timerep 10 recAdd "subInt" 10000000.0
+val it = timerep 100 realAdd "realAdd" 10000000.0
+val it = timerep 100 realSub "realSub" 10000000.0
 
 
 
