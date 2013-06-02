@@ -65,9 +65,8 @@ var rev = function(list) {
     return revlist;
 }
 
-var genTreeMake = function(n) {
-    var nums = intList(19);
-    return genTree(nums);
+var genTreeMake = function(intlist) {
+    return genTree(intlist.slice());
 }
 
 var genTree = function(nums) {
@@ -91,5 +90,5 @@ var traverseTree = function(tree, n) {
 }
 
 var tree = genTree(intList(19));
-var $_var154 = timerep$4(100)(genTreeMake)("genTree_native")(19);
+var $_var154 = timerep$4(100)(genTreeMake)("genTree_native")(intList(19));
 var $_var171 = timerep$4(100)(traverseTree)("traverseTree_native")(tree, 0);
