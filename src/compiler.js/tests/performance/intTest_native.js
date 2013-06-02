@@ -43,5 +43,5 @@ var intSubRec_native = function(x){
   return ;
 }
 
-var it$6 = timerep$4(10)(intAddRec_native)("intAddRec_native")(0);
-var it$12 = timerep$4(10)(intSubRec_native)("intSubRec_native")(9500);
+var it$6 = timerep$4(100)(intAddRec_native)("intAddRec_native")(0);
+var it$12 = timerep$4(100)(intSubRec_native)("intSubRec_native")(9500);
