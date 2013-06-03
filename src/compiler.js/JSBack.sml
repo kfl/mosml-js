@@ -136,7 +136,6 @@ and compileJSPrim (prim : primitive) args env =
   | (Pmakeblock(CONtag(tag,_)),args) => compileBlock tag args env
   | (Praise, [arg]) => JSRaise(compileJSLambda arg env)
   | (Psetfield(i), [arg1, arg2]) => JSSetField(i, compileJSLambda arg1 env, compileJSLambda arg2 env)
-  | (Pintoffloat, [arg]) => compileJSLambda arg env
   | (Pstringlength, [arg]) => JSOperator(JSStringLength, [compileJSLambda arg env])
   | _ => JSError("compileJSPrim") (* else print error *)
 
