@@ -43,8 +43,8 @@ var realSub = function($_var73) {
         33.3334-9.992;
     }
 };
-var it$7 = timerep$4(10)(realAdd)("realAdd_native")(10000000.0);
-var it$8 = timerep$4(10)(realSub)("realSub_native")(10000000.0);
+var it$7 = timerep$4(100)(realAdd)("realAdd_native")(1000000.0);
+var it$8 = timerep$4(100)(realSub)("realSub_native")(1000000.0);
 
 
 var realSubTest0 = function($_var73) {
@@ -55,7 +55,7 @@ var realSubTest0 = function($_var73) {
         }
     }())
 };
-var it$9 = timerep$4(10)(recSubTest)("realSubTest0")(10000000.0);
+var it$9 = timerep$4(100)(realSubTest0)("realSubTest0")(1000000.0);
 
 var realSubTest1 = function($_var73) {
     var i = 0;
@@ -63,7 +63,7 @@ var realSubTest1 = function($_var73) {
         (function(){33.3334-9.992}())
     }
 };
-var it$9 = timerep$4(10)(recSubTest1)("realSubTest1")(10000000.0);
+var it$9 = timerep$4(100)(realSubTest1)("realSubTest1")(1000000.0);
 
 var realSubTest2 = function($_var73) {
     var i = 0;
@@ -73,10 +73,4 @@ var realSubTest2 = function($_var73) {
         }
     }())
 };
-var it$9 = timerep$4(10)(recSubTest2)("realSubTest2")(10000000.0);
-
-
-
-
-
-
+var it$9 = timerep$4(100)(realSubTest2)("realSubTest2")(1000000.0);

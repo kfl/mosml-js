@@ -11,6 +11,7 @@ showlambda=true
 translatefirst=true
 beautify=true
 closure=false
+run=true
 
 while : ; do
     case $1 in
@@ -41,6 +42,9 @@ while : ; do
         ;;
     -no-jsbeautify)
         beautify=false
+        ;;
+    -no-run)
+        run=false
         ;;
     -*)
         echo "Unknown option \"$1\", ignored" >&2
@@ -77,9 +81,13 @@ else
         cat $jsfile > $tmpfile
     fi
 fi
-echo "==============================JS BEGIN=============================="
-node $tmpfile
-echo "==============================JS END================================"
+
+if $run; then
+    echo "==============================JS BEGIN=============================="
+    node $tmpfile
+    echo "==============================JS END================================"
+fi
+
 rm $tmpfile
 
 exit 0
